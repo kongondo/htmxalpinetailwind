@@ -1,25 +1,30 @@
-# CakePHP 3
+.vscode
+.DS_Store
+test*.*
+.DS_Store
+node_modules
+dist
 
-/vendor/*
-/config/app.php
+# local env files
+.env.local
+.env.*.local
 
-/tmp/cache/models/*
-!/tmp/cache/models/empty
-/tmp/cache/persistent/*
-!/tmp/cache/persistent/empty
-/tmp/cache/views/*
-!/tmp/cache/views/empty
-/tmp/sessions/*
-!/tmp/sessions/empty
-/tmp/tests/*
-!/tmp/tests/empty
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-/logs/*
-!/logs/empty
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# CakePHP 2
-
-/app/tmp/*
-/app/Config/core.php
-/app/Config/database.php
-/vendors/*
+# ProcessWire Files and Folders
+/errors
+.htaccess
+admin.php
+README.txt
