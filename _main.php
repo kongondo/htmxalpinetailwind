@@ -104,6 +104,8 @@ namespace ProcessWire;
 		<?php
 		// CONTENT
 		echo $content;
+		// CSRF FOR ANY FORMS
+		echo $session->CSRF->renderInput();
 		?>
 
 
