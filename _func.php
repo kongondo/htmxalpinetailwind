@@ -128,8 +128,31 @@ function renderNavTree($items, $maxDepth = 0, $fieldNames = '', $class = 'nav') 
 	return $out;
 }
 
-function testing() {
+function buildBreadCrumb($page) {
+	$breadcrumbItems = array_filter(explode("/", $page->path));
+	bd($breadcrumbItems, '$breadcrumbItems');
+	$breadcrumb = "
+	<div class='text-sm breadcrumbs'>
+		<ul>
+	";
+	// if site is multilingual, remove the 'language name' from the breadcrumbs
+	if (wire('languages')) {
+		array_shift($breadcrumbItems);
+	}
 
+	$urlParts = [];
+	foreach ($breadcrumbItems as $breadcrumbItem) {
+		$urlParts[] = "{$breadcrumbItem}";
+		$url = implode("/", $urlParts);
+		$breadcrumb .= " <li><a href='/{$url}'>{$breadcrumbItem}</a></li> ";
+		bd($urlParts, '$urlParts');
+		bd($url, '$url');
+	}
+	$breadcrumb .= "  </ul>
+	</div>";
+
+	// -----
+	return $breadcrumb;
 
 
 }

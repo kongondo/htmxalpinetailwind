@@ -76,9 +76,9 @@ namespace ProcessWire;
 
 </head>
 
-<body class="container mx-auto prose md:prose-lg lg:prose-xl max-w-none">
+<body class="container mx-auto prose md:prose-lg lg:prose-xl max-w-none p-5">
 	<header>
-		<div class="mt-3">
+		<div class="mt-3 mb-5">
 			<p>Theme</p>
 			<select name="" id="" x-model="$store.HtmxAlpineTailwindDemosStore.current_theme">
 				<template x-for="(theme, index) in getDaisyUIThemes()">
@@ -86,10 +86,13 @@ namespace ProcessWire;
 				</template>
 			</select>
 		</div>
+		<?php
+		echo $breadcrumb;
+		?>
 	</header>
 
 
-	<main id='main' class='mt-5 px-4'>
+	<main id='main' class='px-4'>
 		<h1 class="text-clifford">
 			<?php
 			echo $title;
