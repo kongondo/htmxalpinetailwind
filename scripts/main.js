@@ -3,6 +3,9 @@ const HtmxAlpineTailwindDemos = {
 		document.body.addEventListener("htmx:configRequest", (event) => {
 			const csrf_token = HtmxAlpineTailwindDemos.getCSRFToken()
 			event.detail.headers[csrf_token.name] = csrf_token.value
+			debugLogger(`headers: ${event.detail.headers}`)
+			console.log("headers", event.detail.headers)
+			console.log("parameters", event.detail.parameters)
 			// add XMLHttpRequest to header to work with $config->ajax
 			event.detail.headers["X-Requested-With"] = "XMLHttpRequest"
 		})
@@ -114,6 +117,7 @@ document.addEventListener("alpine:init", () => {
 		//----------------
 
 		is_modal_open: false,
+		current_buy_now_product_id: 0,
 		/* product attributes */
 		product_attributes: [],
 		/* product attributes options */
@@ -165,15 +169,73 @@ document.addEventListener("alpine:init", () => {
 
 		handleBuyNow(product_id) {
 			debugLogger(`BUY NOW PRODUCT ID: ${product_id}`)
+			const isModalOpenProperty = "is_modal_open"
+			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
+			debugLogger(`CURRENT IS MODAL OPEN: ${currentIsModalOpenValue}`)
+			const incomingIsModalOpenValue = !currentIsModalOpenValue
+			debugLogger(`INCOMING IS MODAL OPEN: ${incomingIsModalOpenValue}`)
+
+			let currentBuyNowProductID
+			if (!incomingIsModalOpenValue) {
+				// modal is closing: reset ID of current buy now product to zero
+				currentBuyNowProductID = 0
+			} else {
+				// modal is openint: set ID of current buy now product to selected product and process it
+				currentBuyNowProductID = product_id
+			}
+			// set current buy now product id to the store
+			this.setCurrentBuyNowProductID(currentBuyNowProductID)
+			// process buy now action
+			this.processBuyNow()
+
+			// --------
+			// open or close modal for buy now
+			this.setStoreValue(isModalOpenProperty, incomingIsModalOpenValue)
+		},
+
+		processBuyNow() {
+			const currentBuyNowProductID = this.getStoreValue(
+				"current_buy_now_product_id"
+			)
+			debugLogger(`BUY NOW PRODUCT ID: ${currentBuyNowProductID}`)
+			if (currentBuyNowProductID) {
+				// WE HAVE A CURRENT BUY NOW PRODUCT ID: process the modal!
+				// this.$dispatch("HtmxAlpineTailwindDemosGetBuyNowProduct", {
+				// 	current_buy_now_product_id: currentBuyNowProductID,
+				// })
+				debugLogger(
+					`WE HAVE A BUY NOW PRODUCT ID: trigger htmx!: ${currentBuyNowProductID}`
+				)
+				const triggerElementID =
+					"#htmx_alpine_tailwind_demos_get_buy_now_product_wrapper"
+				const triggerEvent = "HtmxAlpineTailwindDemosGetBuyNowProduct"
+				const eventDetails = {
+					current_buy_now_product_id: currentBuyNowProductID,
+				}
+				debugLogger(`triggerElementID for htmx!: ${triggerElementID}`)
+				debugLogger(`triggerEvent for htmx!: ${triggerEvent}`)
+				debugLogger(`eventDetails for htmx!: ${eventDetails}`)
+				// @NOTE: WE DELAY SEND TO AVOID RACE CONDITION
+				setTimeout(() => {
+					// htmx.trigger(triggerElementID, triggerEvent, eventDetails)
+					htmx.trigger(triggerElementID, triggerEvent)
+				}, 300)
+			}
+			// @TODO DO WE NEED TO HANDLE 'else'?
 		},
 
 		handleSomeAction() {
-			const message = "htmx Alpine.JS and Tailwind CSS are awesome!"
+			const message = "htmx, Alpine.JS and Tailwind CSS are awesome!"
 			// -----
 			this.handleAnotherAction(message)
 		},
 		handleAnotherAction(message) {
 			debugLogger(message)
+		},
+
+		setCurrentBuyNowProductID(buy_now_product_id) {
+			debugLogger(`BUY NOW PRODUCT ID TO SET TO STORE: ${buy_now_product_id}`)
+			this.setStoreValue("current_buy_now_product_id", buy_now_product_id)
 		},
 
 		sendCustomEventToHTMX() {

@@ -3,12 +3,52 @@ namespace ProcessWire;
 
 // products.php template file
 
+/*
+>>>>>>>>>>>>>>>>>>>>>>>>
+DEMO NOTES
+1. Demo 'buy now' action
+2. Alpine.js handles the action
+-  opens/closses a modal
+- set ID of the current buy now product
+- this ID is modeled by a hidden input #htmx_alpine_tailwind_demos_buy_now_product_id
+- Alpine dispatches a custom event that htmx is listening to.
+3. htmx picks up the custom event 'HtmxAlpineTailwindDemosGetBuyNowProduct' [purposefully verbosely long for clarity!]
+- htmx sends a get request to the server
+- server sends response to htmx: if product found; the markup for that, else fail markup
+- htmx populates the 'buy now modal' and listens to increment/decrement product in basket
+@NOTES:
+- This is just one way of doing this
+- An alternative (@TODO DEMO FOR THIS/WIP) is to populate the modal with details on the client side
+- We use Alpine.js for this
+- This would mean Alpine.js gets all products (those in view) details and stores this in the $store.HtmxAlpineTailwindDemosStore
+- When populating the modal, Alpine gets the information from the store
+- the increment/decrement product in cart/basket are handled by htmx as usual
+- This is trickier if your store has variants since it would mean fetching them all for all current products
+- Ideally you want to use findRaw() in that case
+<<<<<<<<<<<<<<<<<<<<<<<
+/*
 /** @var Page $page */
 
 // Primary content is the page's body copy
 // $content = $page->get('body');
 
 $breadcrumb = buildBreadCrumb($page);
+
+// WE ARE MANUALLY SPECIFYING A TRIGGER for HTMX; in this case, a custom event 'HtmxAlpineTailwindDemosGetBuyNowProduct'
+$hxTrigger = 'HtmxAlpineTailwindDemosGetBuyNowProduct';
+// SENDING HTMX GET REQUEST TO THE 'root' ProcessWire page.
+$hxGet = '/';
+// WE WILL REPLACE THE CONTENTS OF THIS DIV with the server response
+$hxTarget = '#htmx_alpine_tailwind_demos_get_buy_now_product_wrapper';
+// THIS TELLS HTMX WHERE WITHIN (or without) THE TARGET TO PLACE THE MARKUP RETURNED BY THE SERVER
+// 'innerHTML' is the default; just specifying for clarity
+$hxSwap = 'innerHTML';
+// WE ONLY SEND THIS/THESE comma separated NAMES of 'inputs'
+// $hxParams = "htmx_alpine_tailwind_demos_get_buy_now_product_id";
+$hxInclude = "#htmx_alpine_tailwind_demos_get_buy_now_product_id";
+// --------
+// we list to a custom even to trigger this htmx action
+$htmxMarkupForBuyNow = "hx-trigger='{$hxTrigger}' hx-target='{$hxTarget}' hx-get='${hxGet}' hx-swap='{$hxSwap}' hx-include='{$hxInclude}'";
 
 $selectorArray = [
 	'template' => 'product',
@@ -78,3 +118,31 @@ $content .= "			</div>
 </section>";
 // $content .= "	</div>
 // </div>";
+
+// MODAL
+
+$content .=
+	// using 'shorthand conditional [&&]'
+// @see: https://alpinejs.dev/directives/bind#shorthand-conditionals
+	"<div class='modal modal-bottom sm:modal-middle' :class='\$store.HtmxAlpineTailwindDemosStore.is_modal_open && `modal-open`' {$htmxMarkupForBuyNow}>" .
+	// MODAL CONTENT - will be 'swapped' using htmx
+	"<div class='modal-box'>" .
+	// main modal content to swap out
+	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_wrapper'>" .
+	"<h3 class='font-bold text-lg'>Product Title</h3>" .
+	"<p class='py-4'>Product details for product with ID: <span x-text='\$store.HtmxAlpineTailwindDemosStore.current_buy_now_product_id'></span></p>" .
+	"<input id='htmx_alpine_tailwind_demos_get_buy_now_product_id' name='htmx_alpine_tailwind_demos_get_buy_now_product_id' type='text' x-model='\$store.HtmxAlpineTailwindDemosStore.current_buy_now_product_id'>" .
+	"</div>" .
+	// MODAL ACTION
+	"<div class='modal-action'>" .
+	// on click this 'close button', we set current buy now product to '0'
+	// THIS WILL close the modal and reset current buy now values in the Alpine.js store 'HtmxAlpineTailwindDemosStore'
+	"<button class='btn XXXbtn-ghost btn-secondary' @click='handleBuyNow(0)'>close</button>" .
+	"</div>" .
+	// ----
+	"</div>" .
+	// -----
+	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT ID for HTMX USE
+	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_id'
+	// "<input id='htmx_alpine_tailwind_demos_get_buy_now_product_id' name='htmx_alpine_tailwind_demos_get_buy_now_product_id' type='text' x-model='\$store.HtmxAlpineTailwindDemosStore.current_buy_now_product_id'>" .
+	"</div>";
