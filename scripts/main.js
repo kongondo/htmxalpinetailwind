@@ -163,6 +163,10 @@ document.addEventListener("alpine:init", () => {
 
 		// -------
 
+		handleBuyNow(product_id) {
+			debugLogger(`BUY NOW PRODUCT ID: ${product_id}`)
+		},
+
 		handleSomeAction() {
 			const message = "htmx Alpine.JS and Tailwind CSS are awesome!"
 			// -----
