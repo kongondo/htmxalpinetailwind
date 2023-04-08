@@ -34,21 +34,35 @@ DEMO NOTES
 
 $breadcrumb = buildBreadCrumb($page);
 
+# >>>> HTMX <<<<
+
 // WE ARE MANUALLY SPECIFYING A TRIGGER for HTMX; in this case, a custom event 'HtmxAlpineTailwindDemosGetBuyNowProduct'
 $hxTrigger = 'HtmxAlpineTailwindDemosGetBuyNowProduct';
 // SENDING HTMX GET REQUEST TO THE 'root' ProcessWire page.
 $hxGet = '/';
 // WE WILL REPLACE THE CONTENTS OF THIS DIV with the server response
-$hxTarget = '#htmx_alpine_tailwind_demos_get_buy_now_product_wrapper';
+$hxTarget = '#htmx_alpine_tailwind_demos_get_buy_now_product_notice';
 // THIS TELLS HTMX WHERE WITHIN (or without) THE TARGET TO PLACE THE MARKUP RETURNED BY THE SERVER
 // 'innerHTML' is the default; just specifying for clarity
 $hxSwap = 'innerHTML';
 // WE ONLY SEND THIS/THESE comma separated NAMES of 'inputs'
 // $hxParams = "htmx_alpine_tailwind_demos_get_buy_now_product_id";
-$hxInclude = "#htmx_alpine_tailwind_demos_get_buy_now_product_id";
+$hxInclude = ".htmx_alpine_tailwind_demos_buy_now";
 // --------
 // we list to a custom even to trigger this htmx action
 $htmxMarkupForBuyNow = "hx-trigger='{$hxTrigger}' hx-target='{$hxTarget}' hx-get='${hxGet}' hx-swap='{$hxSwap}' hx-include='{$hxInclude}'";
+
+# >>>> ALPINE.js <<<<
+
+$store = '$store.HtmxAlpineTailwindDemosStore';
+
+// @note: just for consistency @see below $buyNowValues
+$defaultByNowValues = [
+	'product_id' => 0,
+	'product_price' => 0,
+	'product_title' => '',
+];
+$defaultByNowValuesJSON = json_encode($defaultByNowValues);
 
 $selectorArray = [
 	'template' => 'product',
@@ -76,7 +90,15 @@ foreach ($products as $product) {
 	$image = $product->images->first();
 	$thumb = $image->size(260, 260);
 	$productTitle = $sanitizer->truncate($product->headline, 75);
+	$productPrice = (float) $product->price;
 	// @TODO NOT SURE ABOUT 'object-attrs' below!
+
+	$buyNowValues = [
+		'product_id' => $product->id,
+		'product_price' => $product->price,
+		'product_title' => $product->title,
+	];
+	$buyNowValuesJSON = json_encode($buyNowValues);
 
 	$content .=
 		// ** PRODUCT CARD **
@@ -95,7 +117,7 @@ foreach ($products as $product) {
 		"<div class='mt-1 p-2'>" .
 		// PRICE + BUY NOW BUTTON + ICON
 		"<div class='mt-3 flex items-end justify-between'>" .
-		"<p class='text-lg font-bold text-primary'>\${$product->price}</p>" .
+		"<p class='text-lg font-bold text-primary'>{$productPrice}</p>" .
 
 		"<div class='flex items-center space-x-1.5 rounded-lg px-4 py-1.5 duration-100 btn btn-primary'>" .
 		"<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5'
@@ -104,7 +126,8 @@ foreach ($products as $product) {
 			d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z' />
 			</svg>" .
 		// buy now
-		"<button class='text-sm uppercase' @click.stop='handleBuyNow({$product->id})'>buy now</button>" .
+		// @NOTE - THIS IS JUST ONE WAY OF PASSING VALUES TO ALPINE; e.g. we could have used data-attributes or ProcessWire config->js
+		"<button class='text-sm uppercase' @click.stop='handleBuyNow({$buyNowValuesJSON})'>buy now</button>" .
 		"</div>" .
 		// end buy now wrapper
 		"</div>" .
@@ -124,25 +147,48 @@ $content .= "			</div>
 $content .=
 	// using 'shorthand conditional [&&]'
 // @see: https://alpinejs.dev/directives/bind#shorthand-conditionals
-	"<div class='modal modal-bottom sm:modal-middle' :class='\$store.HtmxAlpineTailwindDemosStore.is_modal_open && `modal-open`' {$htmxMarkupForBuyNow}>" .
-	// MODAL CONTENT - will be 'swapped' using htmx
+	"<div class='modal modal-bottom sm:modal-middle' :class='{$store}.is_modal_open && `modal-open`' {$htmxMarkupForBuyNow}>" .
+	// MODAL CONTENT - part of itwill be 'swapped' using htmx
 	"<div class='modal-box'>" .
 	// main modal content to swap out
 	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_wrapper'>" .
-	"<h3 class='font-bold text-lg'>Product Title</h3>" .
-	"<p class='py-4'>Product details for product with ID: <span x-text='\$store.HtmxAlpineTailwindDemosStore.current_buy_now_product_id'></span></p>" .
-	"<input id='htmx_alpine_tailwind_demos_get_buy_now_product_id' name='htmx_alpine_tailwind_demos_get_buy_now_product_id' type='text' x-model='\$store.HtmxAlpineTailwindDemosStore.current_buy_now_product_id'>" .
+	"<h3 class='font-bold text-lg' x-text='{$store}.current_buy_now_product_values.product_title'></h3>" .
+	// BUTTONS + INCREASE/DECREASE QUANTITY BUTTONS + PRICES
+	"<div class='form-control'>" .
+	// "<span>$<span x-text='{$store}.current_buy_now_product_total_price'></span></span>" .
+	"<span class='text-md'>" .
+	// unit price
+	"$<span class='mr-1' x-text='{$store}.current_buy_now_product_values.product_price'></span>" .
+	// total price
+	"($<span x-text='getCurrentTotalPrice()'></span>)" .
+	"</span>" . // @note: using this so we get the updated value if manual quantity inputted
+	"<div class='input-group'>" .
+	"<button class='btn btn-outline btn' @click='handleBuyNowQuantity(-1)'>&minus;</button>" .
+	"<input name='htmx_alpine_tailwind_demos_get_buy_now_quantity' class='w-14 border border-x-0 border-black bg-transparent text-center input input-bordered htmx_alpine_tailwind_demos_buy_now' type='number' value='1' min='1' x-model='{$store}.current_buy_now_product_quantity'/>" .
+	"<button class='btn btn-outline' @click='handleBuyNowQuantity(1)'>&plus;</button>" .
+	"<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart'>Add to basket</button>" .
 	"</div>" .
+	"</div>" .
+
+	// ------
+	// ELEMENT FOR HTMX SWAP
+	// @note: will show success/fail of add to basket
+	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_notice'>" .
+	"<p>Please add item to basket.</p>" .
+	"</div>" .
+	// ----------
+	"</div>" . // end #htmx_alpine_tailwind_demos_get_buy_now_product_wrapper
+	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT ID for HTMX USE
+	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_values.product_id' [@NOTE an object whose property 'product_id' we bind]
+	// @note: we will modify 'current_buy_now_product_values' in case server returns a product with variants. Value here will be changed when variant is selected
+	"<input name='htmx_alpine_tailwind_demos_get_buy_now_product_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_values.product_id'>" .
 	// MODAL ACTION
 	"<div class='modal-action'>" .
 	// on click this 'close button', we set current buy now product to '0'
 	// THIS WILL close the modal and reset current buy now values in the Alpine.js store 'HtmxAlpineTailwindDemosStore'
-	"<button class='btn XXXbtn-ghost btn-secondary' @click='handleBuyNow(0)'>close</button>" .
+	"<button class='btn XXXbtn-ghost btn-secondary' @click='handleBuyNow({$defaultByNowValuesJSON})'>close</button>" .
 	"</div>" .
 	// ----
 	"</div>" .
 	// -----
-	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT ID for HTMX USE
-	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_id'
-	// "<input id='htmx_alpine_tailwind_demos_get_buy_now_product_id' name='htmx_alpine_tailwind_demos_get_buy_now_product_id' type='text' x-model='\$store.HtmxAlpineTailwindDemosStore.current_buy_now_product_id'>" .
 	"</div>";

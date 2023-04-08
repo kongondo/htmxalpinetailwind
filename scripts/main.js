@@ -78,6 +78,10 @@ function debugLogger(message) {
 // ALPINE
 document.addEventListener("alpine:init", () => {
 	Alpine.store("HtmxAlpineTailwindDemosStore", {
+		// @TODO DELETE IF NOT IN USE
+		// init() {
+
+		// },
 		// GLOBAL
 		daisyui: {
 			themes: [
@@ -117,7 +121,10 @@ document.addEventListener("alpine:init", () => {
 		//----------------
 
 		is_modal_open: false,
-		current_buy_now_product_id: 0,
+		// current_buy_now_product_id: 0,
+		current_buy_now_product_values: {},
+		current_buy_now_product_quantity: 1,
+		current_buy_now_product_total_price: 0,
 		/* product attributes */
 		product_attributes: [],
 		/* product attributes options */
@@ -160,42 +167,79 @@ document.addEventListener("alpine:init", () => {
 		 * @return {void}.
 		 */
 		setStoreValue(property, value) {
-			debugLogger(`PROPERTY: ${property}`)
-			debugLogger(`VALUE: ${value}`)
+			// debugLogger(`PROPERTY: ${property}`)
+			// debugLogger(`VALUE: ${value}`)
 			this.$store.HtmxAlpineTailwindDemosStore[property] = value
 		},
 
 		// -------
 
-		handleBuyNow(product_id) {
-			debugLogger(`BUY NOW PRODUCT ID: ${product_id}`)
+		handleBuyNow(product_values) {
+			// ---------
+
+			// @NOTE/@TODO HERE YOU SHOULD HANDLE ERRORS, ensure expected properties are in the sent object, etc!
 			const isModalOpenProperty = "is_modal_open"
 			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
-			debugLogger(`CURRENT IS MODAL OPEN: ${currentIsModalOpenValue}`)
 			const incomingIsModalOpenValue = !currentIsModalOpenValue
-			debugLogger(`INCOMING IS MODAL OPEN: ${incomingIsModalOpenValue}`)
 
-			let currentBuyNowProductID
-			if (!incomingIsModalOpenValue) {
-				// modal is closing: reset ID of current buy now product to zero
-				currentBuyNowProductID = 0
-			} else {
-				// modal is openint: set ID of current buy now product to selected product and process it
-				currentBuyNowProductID = product_id
-			}
 			// set current buy now product id to the store
-			this.setCurrentBuyNowProductID(currentBuyNowProductID)
-			// process buy now action
-			this.processBuyNow()
+			// this.setCurrentBuyNowProductID(currentBuyNowProductID)
+			this.setCurrentBuyNowProductValues(product_values)
 
 			// --------
 			// open or close modal for buy now
 			this.setStoreValue(isModalOpenProperty, incomingIsModalOpenValue)
 		},
 
+		handleBuyNowQuantity(amount) {
+			const currentBuyNowProductValues = this.getStoreValue(
+				"current_buy_now_product_values"
+			)
+
+			const currentBuyNowProductID = parseInt(
+				currentBuyNowProductValues.product_id
+			)
+			if (!currentBuyNowProductID) {
+				// return early; no product ID; maybe just inited
+				return
+			}
+
+			const currentBuyNowProductPrice = currentBuyNowProductValues.product_price
+			const buyNowProductQtyProperty = "current_buy_now_product_quantity"
+			// get current quantity
+			const currentBuyNowProductQuantity = parseInt(
+				this.getStoreValue(buyNowProductQtyProperty)
+			)
+
+			let updatedBuyNowProductQuantity =
+				currentBuyNowProductQuantity + parseInt(amount)
+			if (!updatedBuyNowProductQuantity) {
+				// make sure we always have at least quantity of 1
+				// @todo: could also change for '0' to mean remove item?
+				updatedBuyNowProductQuantity = 1
+			}
+
+			// update quantity
+			this.setStoreValue(buyNowProductQtyProperty, updatedBuyNowProductQuantity)
+
+			const currentBuyNowProductTotalPrice =
+				updatedBuyNowProductQuantity * currentBuyNowProductPrice
+
+			// update total price
+			this.setCurrentBuyNowProductTotalPrice(currentBuyNowProductTotalPrice)
+		},
+
+		handUpdateCart() {
+			debugLogger(`WE WILL TRIGGER HTMX TO TELL SERVER TO UPDATE CART!`)
+			this.processBuyNow()
+		},
+
 		processBuyNow() {
-			const currentBuyNowProductID = this.getStoreValue(
-				"current_buy_now_product_id"
+			const currentBuyNowProductValues = this.getStoreValue(
+				"current_buy_now_product_values"
+			)
+			const currentBuyNowProductID = parseInt(
+				currentBuyNowProductValues.product_id
 			)
 			debugLogger(`BUY NOW PRODUCT ID: ${currentBuyNowProductID}`)
 			if (currentBuyNowProductID) {
@@ -209,17 +253,18 @@ document.addEventListener("alpine:init", () => {
 				const triggerElementID =
 					"#htmx_alpine_tailwind_demos_get_buy_now_product_wrapper"
 				const triggerEvent = "HtmxAlpineTailwindDemosGetBuyNowProduct"
-				const eventDetails = {
-					current_buy_now_product_id: currentBuyNowProductID,
-				}
+				// const eventDetails = {
+				// 	current_buy_now_product_id: currentBuyNowProductID,
+				// }
 				debugLogger(`triggerElementID for htmx!: ${triggerElementID}`)
 				debugLogger(`triggerEvent for htmx!: ${triggerEvent}`)
-				debugLogger(`eventDetails for htmx!: ${eventDetails}`)
-				// @NOTE: WE DELAY SEND TO AVOID RACE CONDITION
+				// debugLogger(`eventDetails for htmx!: ${eventDetails}`)
+				// @NOTE: WE DELAY triggering htmx TO AVOID RACE CONDITION
+				// @NOTE: delay:300ms won't work on htmx target since it won't detect the change in the hidden input on time
 				setTimeout(() => {
 					// htmx.trigger(triggerElementID, triggerEvent, eventDetails)
 					htmx.trigger(triggerElementID, triggerEvent)
-				}, 300)
+				}, 150)
 			}
 			// @TODO DO WE NEED TO HANDLE 'else'?
 		},
@@ -233,9 +278,46 @@ document.addEventListener("alpine:init", () => {
 			debugLogger(message)
 		},
 
-		setCurrentBuyNowProductID(buy_now_product_id) {
-			debugLogger(`BUY NOW PRODUCT ID TO SET TO STORE: ${buy_now_product_id}`)
-			this.setStoreValue("current_buy_now_product_id", buy_now_product_id)
+		setCurrentBuyNowProductValues(buy_now_product_values) {
+			this.setStoreValue(
+				"current_buy_now_product_values",
+				buy_now_product_values
+			)
+			// also set 'current_buy_now_product_total_price'
+			this.setCurrentBuyNowProductTotalPrice(
+				buy_now_product_values.product_price
+			)
+		},
+
+		setCurrentBuyNowProductTotalPrice(total_price) {
+			this.setStoreValue("current_buy_now_product_total_price", total_price)
+		},
+
+		getCurrentTotalPrice() {
+			// @note: we compute this to handle manual product quantity inputs
+			let currentBuyNowProductTotalPrice = 0
+			const currentBuyNowProductValues = this.getStoreValue(
+				"current_buy_now_product_values"
+			)
+
+			const currentBuyNowProductID = parseInt(
+				currentBuyNowProductValues.product_id
+			)
+
+			if (currentBuyNowProductID) {
+				const currentBuyNowProductPrice = parseFloat(
+					currentBuyNowProductValues.product_price
+				)
+				const currentBuyNowProductQuantity = parseInt(
+					this.getStoreValue("current_buy_now_product_quantity")
+				)
+				currentBuyNowProductTotalPrice =
+					currentBuyNowProductQuantity * currentBuyNowProductPrice
+			}
+
+			currentBuyNowProductTotalPrice = currentBuyNowProductTotalPrice.toFixed(2)
+			//  ----
+			return currentBuyNowProductTotalPrice
 		},
 
 		sendCustomEventToHTMX() {
