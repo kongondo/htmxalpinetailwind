@@ -29,6 +29,14 @@ namespace ProcessWire;
  * kind of output like an RSS feed or sitemap.xml, for example.
  *
  */
+if ($config->ajax) {
+	// HANDLE AJAX REQUESTS
+	// we pass to a handler function
+	// @note: we could access $input DIRECTLY in the function as well
+	$out = handleAjaxRequests($input);
+	echo $out;
+	exit();
+}
 
 ?>
 <!DOCTYPE html>
@@ -53,6 +61,12 @@ namespace ProcessWire;
 			.content-auto {
 				content-visibility: auto;
 			}
+			/* remove browser increase/decrease markup from number inputs */
+			input[type="number"]::-webkit-inner-spin-button,
+			input[type="number"]::-webkit-outer-spin-button {
+			-webkit-appearance: none;
+			margin: 0;
+		}
 		}
 		/* ALPINE JS attribute
 		Hide a block of HTML until after Alpine is finished initializing its contents

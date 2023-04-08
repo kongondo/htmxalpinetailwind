@@ -1,6 +1,7 @@
 <?php
 namespace ProcessWire;
 
+// bd($var, __METHOD__ . ': $var at line #' . __LINE__);
 /**
  * /site/templates/_func.php
  *
@@ -60,8 +61,6 @@ function renderNav(PageArray $items) {
 	// return the markup we generated above
 	return $out;
 }
-
-
 
 /**
  * Given a group of pages, render a <ul> navigation tree
@@ -128,9 +127,39 @@ function renderNavTree($items, $maxDepth = 0, $fieldNames = '', $class = 'nav') 
 	return $out;
 }
 
+function handleAjaxRequests($input) {
+	bd($input, '$input');
+	$out = "<p>Sorry, we were not able to handle your request.</p>";
+	# DETERMINE HANDLER TO USE #
+	if (!empty($input->get('htmx_alpine_tailwind_demos_get_buy_now_product_id'))) {
+		$out = processBuyNowAction((int) $input->get('htmx_alpine_tailwind_demos_get_buy_now_product_id'));
+	}
+
+	// ------
+	return $out;
+}
+
+function processBuyNowAction($productID) {
+	bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
+	$productID = (int) $productID;
+	$out =
+		// add to basket success confirm
+		"<div class='alert alert-success shadow-lg mt-3'>
+		<div>
+			<svg xmlns='http://www.w3.org/2000/svg' class='stroke-current flex-shrink-0 h-6 w-6' fill='none' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
+			<span class='text-sm'>Product has been added to your basket successfully.</span>
+		</div>
+	</div>";
+	// ------
+	return $out;
+}
+
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 function buildBreadCrumb($page) {
 	$breadcrumbItems = array_filter(explode("/", $page->path));
-	bd($breadcrumbItems, '$breadcrumbItems');
+
 	$breadcrumb = "
 	<div class='text-sm breadcrumbs'>
 		<ul>
@@ -145,8 +174,6 @@ function buildBreadCrumb($page) {
 		$urlParts[] = "{$breadcrumbItem}";
 		$url = implode("/", $urlParts);
 		$breadcrumb .= " <li><a href='/{$url}'>{$breadcrumbItem}</a></li> ";
-		bd($urlParts, '$urlParts');
-		bd($url, '$url');
 	}
 	$breadcrumb .= "  </ul>
 	</div>";
