@@ -94,17 +94,19 @@ bd($idsOfProductsWithVariants, 'idsOfProductsWithVariants');
 // SCRIPT TO SEND VARIANTS DATA TO BROWSER
 // for alpine for use in modal for 'BUY NOW'
 // @NOTE: this is just one strategy to send data to the browser!
-if (!empty($allProductsVariants)) {
-	$allProductsVariantsJSON = json_encode($allProductsVariants);
-	$idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
-	$variantsScript =
-		"<script>" .
-		"const allProductsVariants = {$allProductsVariantsJSON}\n" .
-		"const idsOfProductsWithVariants = {$idsOfProductsWithVariantsJSON}\n" .
-		"</script>";
-}
-
-// @TODO MAYBE JUST PASS TO ALPINE DIRECTLY VIA X-INIT? THEN SET TO STORE? COULD DO SO HERE OR IN THE LOOP FOR EACH ITEM BUT FORMER IS CLEANER/BETTER?
+// @TODO MAYBE JUST PASS TO ALPINE DIRECTLY VIA X-INIT? THEN SET TO STORE? COULD DO SO HERE OR IN THE LOOP FOR EACH ITEM BUT FORMER IS CLEANER/BETTER? @UPDATE: YES! @SEE BELOW; WE SET DIRECTLY TO x-init
+// if (!empty($allProductsVariants)) {
+// $allProductsVariantsJSON = json_encode($allProductsVariants);
+// $idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
+// $variantsScript =
+// 	"<script>" .
+// 	"const allProductsVariants = {$allProductsVariantsJSON}\n" .
+// 	"const idsOfProductsWithVariants = {$idsOfProductsWithVariantsJSON}\n" .
+// 	"</script>";
+// }
+// 'OBJECTS' for alpine x-init to set product variants values later
+$allProductsVariantsJSON = json_encode($allProductsVariants);
+$idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
 
 
 // @TODO YOU NEED TO ADD YOUR OWN CHECKS HERE IF IMAGES EXIST!
@@ -114,7 +116,7 @@ if (!empty($allProductsVariants)) {
 // <div class='grid grid-cols-2 gap-3'>";
 // $content .= "<div class='flex items-center justify-center min-h-screen from-[#F9F5F3] via-[#F9F5F3] to-[#F9F5F3] bg-gradient-to-br px-2 flex-wrap'>";
 $content .= "
-<section class='not-prose'>
+<section class='not-prose' x-init='setProductsVariantsData({$idsOfProductsWithVariantsJSON},{$allProductsVariantsJSON})'>
 <div class='mx-auto grid grid-cols-1 gap-6 p-6 XXXsm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'>
 ";
 foreach ($products as $product) {
@@ -238,5 +240,6 @@ $content .=
 	"</div>";
 
 // ====
+// @SEE ABOVE @UPDATE: WE NOW SET DIRECTLY IN AN x-initi
 // variants script if available
-$content .= $variantsScript;
+// $content .= $variantsScript;
