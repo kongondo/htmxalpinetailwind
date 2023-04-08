@@ -27,6 +27,9 @@ $content = $page->get('body');
 $sidebar = $page->get('sidebar');
 $breadcrumb = "";
 
+# >>>> ALPINE.js <<<<
+$store = '$store.HtmxAlpineTailwindDemosStore';
+
 // We refer to our homepage a few times in our site, so
 // we preload a copy here in $homepage for convenience.
 $homepage = $pages->get('/');
