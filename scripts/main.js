@@ -278,6 +278,21 @@ document.addEventListener("alpine:init", () => {
 			debugLogger(message)
 		},
 
+		setProductsVariantsData(
+			ids_of_products_with_variants,
+			all_products_variants
+		) {
+			// @TODO: SET TO STORE!
+			console.log(
+				"setProductsVariantsData - ids_of_products_with_variants",
+				ids_of_products_with_variants
+			)
+			console.log(
+				"setProductsVariantsData - all_products_variants",
+				all_products_variants
+			)
+		},
+
 		setCurrentBuyNowProductValues(buy_now_product_values) {
 			this.setStoreValue(
 				"current_buy_now_product_values",

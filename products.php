@@ -104,6 +104,8 @@ if (!empty($allProductsVariants)) {
 		"</script>";
 }
 
+// @TODO MAYBE JUST PASS TO ALPINE DIRECTLY VIA X-INIT? THEN SET TO STORE? COULD DO SO HERE OR IN THE LOOP FOR EACH ITEM BUT FORMER IS CLEANER/BETTER?
+
 
 // @TODO YOU NEED TO ADD YOUR OWN CHECKS HERE IF IMAGES EXIST!
 // $content .= "<div class='not-prose XXXgrid XXXgap-4 XXXmd:grid-cols-4 XXXlg:grid-cols-5'>";
