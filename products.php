@@ -76,7 +76,8 @@ $products = $pages->find($selectorArray);
 $parentProductsIDsStr = '';
 $productsIDs = $products->explode('id');
 $allProductsVariants = [];
-$productsWithVariantsIDs = [];
+$idsOfProductsWithVariants = [];
+$variantsScript = '';
 bd($products, 'products');
 if (!empty($productsIDs)) {
 	$parentProductsIDsStr = implode("|", $productsIDs);
@@ -85,10 +86,23 @@ if (!empty($productsIDs)) {
 	// $variantsFields = ['id', 'title', 'price', 'parent_id', 'parent.price'];
 	$variantsFields = ['id', 'title', 'price', 'parent_id', 'parent'];
 	$allProductsVariants = $pages->findRaw($variantsSelector, $variantsFields);
-	$productsWithVariantsIDs = array_unique(array_column($allProductsVariants, 'parent_id'));
+	$idsOfProductsWithVariants = array_unique(array_column($allProductsVariants, 'parent_id'));
 }
 bd($allProductsVariants, 'allProductsVariants');
-bd($productsWithVariantsIDs, 'productsWithVariantsIDs');
+bd($idsOfProductsWithVariants, 'idsOfProductsWithVariants');
+
+// SCRIPT TO SEND VARIANTS DATA TO BROWSER
+// for alpine for use in modal for 'BUY NOW'
+// @NOTE: this is just one strategy to send data to the browser!
+if (!empty($allProductsVariants)) {
+	$allProductsVariantsJSON = json_encode($allProductsVariants);
+	$idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
+	$variantsScript =
+		"<script>" .
+		"const allProductsVariants = {$allProductsVariantsJSON}\n" .
+		"const idsOfProductsWithVariants = {$idsOfProductsWithVariantsJSON}\n" .
+		"</script>";
+}
 
 
 // @TODO YOU NEED TO ADD YOUR OWN CHECKS HERE IF IMAGES EXIST!
@@ -118,7 +132,7 @@ foreach ($products as $product) {
 	// ======
 	$variantsForProduct = [];
 	// PROCESS VARIANTS IF AVAILABLE
-	if (in_array($product->id, $productsWithVariantsIDs)) {
+	if (in_array($product->id, $idsOfProductsWithVariants)) {
 		// @TODO
 		$variantsForProduct = getVariantsForAProduct($allProductsVariants, 'parent_id', $product->id);
 		bd($variantsForProduct, 'variantsForProduct');
@@ -220,3 +234,7 @@ $content .=
 	"</div>" .
 	// -----
 	"</div>";
+
+// ====
+// variants script if available
+$content .= $variantsScript;
