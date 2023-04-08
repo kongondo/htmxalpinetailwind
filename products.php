@@ -72,9 +72,24 @@ $selectorArray = [
 // for findRaw
 // $fields = ['id', 'title', ];
 $products = $pages->find($selectorArray);
-
-
 // bd($products, 'products');
+$parentProductsIDsStr = '';
+$productsIDs = $products->explode('id');
+$allProductsVariants = [];
+$productsWithVariantsIDs = [];
+bd($products, 'products');
+if (!empty($productsIDs)) {
+	$parentProductsIDsStr = implode("|", $productsIDs);
+	// @note: don't really need the template part but just being thorough
+	$variantsSelector = "parent.id={$parentProductsIDsStr},template=product-variant,sort=parent,sort=title";
+	// $variantsFields = ['id', 'title', 'price', 'parent_id', 'parent.price'];
+	$variantsFields = ['id', 'title', 'price', 'parent_id', 'parent'];
+	$allProductsVariants = $pages->findRaw($variantsSelector, $variantsFields);
+	$productsWithVariantsIDs = array_unique(array_column($allProductsVariants, 'parent_id'));
+}
+bd($allProductsVariants, 'allProductsVariants');
+bd($productsWithVariantsIDs, 'productsWithVariantsIDs');
+
 
 // @TODO YOU NEED TO ADD YOUR OWN CHECKS HERE IF IMAGES EXIST!
 // $content .= "<div class='not-prose XXXgrid XXXgap-4 XXXmd:grid-cols-4 XXXlg:grid-cols-5'>";
@@ -90,8 +105,8 @@ foreach ($products as $product) {
 	$image = $product->images->first();
 	$thumb = $image->size(260, 260);
 	$productTitle = $sanitizer->truncate($product->headline, 75);
-	$productPrice = (float) $product->price;
-	// @TODO NOT SURE ABOUT 'object-attrs' below!
+
+	$productPriceStr = getFormattedPrice($product->price);
 
 	$buyNowValues = [
 		'product_id' => $product->id,
@@ -100,6 +115,19 @@ foreach ($products as $product) {
 	];
 	$buyNowValuesJSON = json_encode($buyNowValues);
 
+	// ======
+	$variantsForProduct = [];
+	// PROCESS VARIANTS IF AVAILABLE
+	if (in_array($product->id, $productsWithVariantsIDs)) {
+		// @TODO
+		$variantsForProduct = getVariantsForAProduct($allProductsVariants, 'parent_id', $product->id);
+		bd($variantsForProduct, 'variantsForProduct');
+		$productPriceStr = "from {$productPriceStr}";
+	}
+
+
+	// =======
+	// @TODO NOT SURE ABOUT CSS 'object-attrs' below!
 	$content .=
 		// ** PRODUCT CARD **
 		"<article class='rounded-xl XXXbg-white bg-slate-50 p-3 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 '>" .
@@ -117,7 +145,7 @@ foreach ($products as $product) {
 		"<div class='mt-1 p-2'>" .
 		// PRICE + BUY NOW BUTTON + ICON
 		"<div class='mt-3 flex items-end justify-between'>" .
-		"<p class='text-lg font-bold text-primary'>{$productPrice}</p>" .
+		"<p class='text-lg font-bold text-primary'>{$productPriceStr}</p>" .
 
 		"<div class='flex items-center space-x-1.5 rounded-lg px-4 py-1.5 duration-100 btn btn-primary'>" .
 		"<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5'
