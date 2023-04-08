@@ -181,7 +181,30 @@ function buildBreadCrumb($page) {
 	// -----
 	return $breadcrumb;
 
+}
 
+function getVariantsForAProduct(array $allProductsVariants, string $property, $match): array {
+	$variantsForProduct = [];
+	$variantsForProduct = array_filter($allProductsVariants, fn($item) => !empty($item[$property]) && $item[$property] === $match);
+
+	// -------
+	return $variantsForProduct;
+}
+
+function getFormattedPrice(float $price) {
+
+	// $whole = floor($product->price);
+	// >> e.g. if prices is 1.2 <<
+	# e.g., value is 1
+	$whole = (int) $price; // 1
+	# e.g. value will be 0.20 after number format,
+	# we then explode to get rid of of the '0.' part by selecting the second element  (e.g. the cents) in the value
+	$fractionArray = explode(".", number_format(($price - $whole), 2));
+	$fraction = $fractionArray[1];
+
+	$formattedPrice = "<span class='currency'>$</span>{$whole}<span class='decimals text-xs align-baseline font-normal relative -top-1'>{$fraction}</span>";
+	// ---
+	return $formattedPrice;
 }
 
 function createDummyProductAndCategoryPages() {
