@@ -122,9 +122,21 @@ document.addEventListener("alpine:init", () => {
 
 		is_modal_open: false,
 		// current_buy_now_product_id: 0,
+		current_buy_now_product_selected_variant_id: 0,
 		current_buy_now_product_values: {},
+		current_buy_now_product_variant_values: {},
+		current_buy_now_product_variants_values: [],
 		current_buy_now_product_quantity: 1,
+		// ----
+		// @note: could be the product or its selected variant's price!
+		current_buy_now_product_unit_price: 0,
+		// ----
 		current_buy_now_product_total_price: 0,
+		ids_of_products_with_variants: [],
+		all_products_variants: {},
+		is_product_with_variants: false,
+
+		// @TODO - DELETE UNUSED!
 		/* product attributes */
 		product_attributes: [],
 		/* product attributes options */
@@ -182,13 +194,42 @@ document.addEventListener("alpine:init", () => {
 			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
 			const incomingIsModalOpenValue = !currentIsModalOpenValue
 
-			// set current buy now product id to the store
-			// this.setCurrentBuyNowProductID(currentBuyNowProductID)
+			// DOES CURRENT BUY NOW PRODUCT HAVE VARIANTS?
+			const idsOfProductsWithVariants = this.getStoreValue(
+				"ids_of_products_with_variants"
+			)
+
+			const currentBuyNowProductID = product_values.product_id
+			if (
+				Object.values(idsOfProductsWithVariants).includes(
+					currentBuyNowProductID
+				)
+			) {
+				// get and set this products variants
+				this.setCurrentBuyNowProductVariants(currentBuyNowProductID)
+				// product has variants! - set flag to display them
+				this.setStoreValue("is_product_with_variants", true)
+			}
+			// set current buy now product values to the store
 			this.setCurrentBuyNowProductValues(product_values)
+			// set current buy now product unit price to the store
+			// @note: if product has variants, this will change once a variant is selected
+			this.setStoreValue(
+				"current_buy_now_product_unit_price",
+				product_values.product_price
+			)
 
 			// --------
+			// setTimeout(() => {
 			// open or close modal for buy now
 			this.setStoreValue(isModalOpenProperty, incomingIsModalOpenValue)
+			// }, 300)
+
+			// =========
+			// if modal is closing, reset 'current by now product' values to defaults
+			if (!incomingIsModalOpenValue) {
+				this.resetBuyNowValuesToDefaults()
+			}
 		},
 
 		handleBuyNowQuantity(amount) {
@@ -204,7 +245,12 @@ document.addEventListener("alpine:init", () => {
 				return
 			}
 
-			const currentBuyNowProductPrice = currentBuyNowProductValues.product_price
+			// const currentBuyNowProductPrice = currentBuyNowProductValues.product_price
+			// @NOTE: IF PRODUCT HAS VARIANTS, this will be price of the selected variant
+			// if the variant does not have a price, we get it from the parent product price
+			const currentBuyNowProductUnitPrice = this.getStoreValue(
+				"current_buy_now_product_unit_price"
+			)
 			const buyNowProductQtyProperty = "current_buy_now_product_quantity"
 			// get current quantity
 			const currentBuyNowProductQuantity = parseInt(
@@ -223,7 +269,7 @@ document.addEventListener("alpine:init", () => {
 			this.setStoreValue(buyNowProductQtyProperty, updatedBuyNowProductQuantity)
 
 			const currentBuyNowProductTotalPrice =
-				updatedBuyNowProductQuantity * currentBuyNowProductPrice
+				updatedBuyNowProductQuantity * currentBuyNowProductUnitPrice
 
 			// update total price
 			this.setCurrentBuyNowProductTotalPrice(currentBuyNowProductTotalPrice)
@@ -282,14 +328,33 @@ document.addEventListener("alpine:init", () => {
 			ids_of_products_with_variants,
 			all_products_variants
 		) {
-			// @TODO: SET TO STORE!
-			console.log(
-				"setProductsVariantsData - ids_of_products_with_variants",
+			// SET TO STORE!
+			// console.log(
+			// 	"setProductsVariantsData - ids_of_products_with_variants",
+			// 	ids_of_products_with_variants
+			// )
+			// console.log(
+			// 	"setProductsVariantsData - all_products_variants",
+			// 	all_products_variants
+			// )
+			this.setStoreValue(
+				"ids_of_products_with_variants",
 				ids_of_products_with_variants
 			)
-			console.log(
-				"setProductsVariantsData - all_products_variants",
-				all_products_variants
+			this.setStoreValue("all_products_variants", all_products_variants)
+		},
+		setCurrentBuyNowProductVariants(current_buy_now_product_id) {
+			// debugLogger(`current_buy_now_product_id - ${current_buy_now_product_id}`)
+			const currentBuyNowProductVariants = this.getCurrentBuyNowProductVariants(
+				current_buy_now_product_id
+			)
+			// console.log(
+			// 	"setCurrentBuyNowProductVariants - currentBuyNowProductVariants",
+			// 	currentBuyNowProductVariants
+			// )
+			this.setStoreValue(
+				"current_buy_now_product_variants_values",
+				currentBuyNowProductVariants
 			)
 		},
 
@@ -302,6 +367,142 @@ document.addEventListener("alpine:init", () => {
 			this.setCurrentBuyNowProductTotalPrice(
 				buy_now_product_values.product_price
 			)
+		},
+
+		setCurrentBuyNowProductSelectedVariant(buy_now_product_variant_values) {
+			this.setStoreValue(
+				"current_buy_now_product_selected_variant_id",
+				parseInt(buy_now_product_variant_values.id)
+			)
+			this.setStoreValue(
+				"current_buy_now_product_variant_values",
+				buy_now_product_variant_values
+			)
+			debugLogger(
+				`current_buy_now_variant_id: ${buy_now_product_variant_values.id}`
+			)
+			// console.log(
+			// 	"setCurrentBuyNowProductSelectedVariant - buy_now_product_variant_values",
+			// 	buy_now_product_variant_values
+			// )
+			// -----
+			// if we don't have a variant price, we fall back to the main product price
+			let variantUnitPrice = buy_now_product_variant_values.price
+			if (!variantUnitPrice) {
+				const currentBuyNowProduct = this.getStoreValue(
+					"current_buy_now_product_values"
+				)
+				// @note: property for main product is 'product_price'!
+				variantUnitPrice = currentBuyNowProduct.product_price
+			}
+			debugLogger(`variantUnitPrice: ${variantUnitPrice}`)
+			this.setStoreValue("current_buy_now_product_unit_price", variantUnitPrice)
+		},
+
+		checkIsCurrentVariantID(variant_id) {
+			const currentBuyNowProductVariantID = this.getStoreValue(
+				"current_buy_now_product_selected_variant_id"
+			)
+			const isCurrentVariantID =
+				parseInt(variant_id) === parseInt(currentBuyNowProductVariantID)
+			return isCurrentVariantID
+		},
+
+		getProductOrSelectedVariantPrice() {
+			// {$store}.current_buy_now_product_values.product_price
+			const currentBuyNowProduct = this.getStoreValue(
+				"current_buy_now_product_values"
+			)
+			const currentBuyNowProductVariant = this.getStoreValue(
+				"current_buy_now_product_variant_values"
+			)
+			// console.log(
+			// 	"getProductOrSelectedVariantPrice - currentBuyNowProduct",
+			// 	currentBuyNowProduct
+			// )
+			// console.log(
+			// 	"getProductOrSelectedVariantPrice - currentBuyNowProductVariant",
+			// 	currentBuyNowProductVariant
+			// )
+			// console.log(
+			// 	"getProductOrSelectedVariantPrice - Object.keys(currentBuyNowProductVariant)",
+			// 	Object.keys(currentBuyNowProductVariant)
+			// )
+			// -------
+			let productUnitPrice
+			if (
+				Object.keys(currentBuyNowProductVariant).length !== 0 &&
+				currentBuyNowProductVariant.constructor === Object
+			) {
+				// productUnitPrice = currentBuyNowProductVariant.price
+				productUnitPrice = this.getStoreValue(
+					"current_buy_now_product_unit_price"
+				)
+				// console.log(
+				// 	"getProductOrSelectedVariantPrice - productUnitPrice - VARIANT PRESENT",
+				// 	productUnitPrice
+				// )
+			}
+			if (!productUnitPrice) {
+				// get price from main product (@note: 'product_price' is the prop!)
+				productUnitPrice = currentBuyNowProduct.product_price
+				// console.log(
+				// 	"getProductOrSelectedVariantPrice - productUnitPrice - VARIANT NOT PRESENT OR NO UNIT PRICE",
+				// 	productUnitPrice
+				// )
+			}
+			return productUnitPrice
+		},
+
+		getCurrentBuyNowProductVariants(current_buy_now_product_id) {
+			// allProductsVariants is an object of objects
+			const allProductsVariants = this.getStoreValue("all_products_variants")
+			// console.log(
+			// 	"getCurrentBuyNowProductVariants - allProductsVariants",
+			// 	allProductsVariants
+			// )
+			// ----
+			// console.log(
+			// 	"getCurrentBuyNowProductVariants - Object.keys(allProductsVariants)",
+			// 	Object.keys(allProductsVariants)
+			// )
+			// console.log(
+			// 	"getCurrentBuyNowProductVariants - Object.values(allProductsVariants)",
+			// 	Object.values(allProductsVariants)
+			// )
+			// console.log(
+			// 	"getCurrentBuyNowProductVariants - Object.entries(allProductsVariants)",
+			// 	Object.entries(allProductsVariants)
+			// )
+
+			// ====
+			// get the the values in the object of objects -> this is an Array
+			// & filter it to get objects whose 'parent_id' match the ID of the current by now product
+			const currentBuyNowProductVariants = Object.values(
+				allProductsVariants
+			).filter((item) => item.parent_id === current_buy_now_product_id)
+			// for (variant of Object.values(allProductsVariants)) {
+			// 	// body of for...of
+			// 	console.log("getCurrentBuyNowProductVariants - variant", variant)
+			// }
+
+			// console.log(
+			// 	"getCurrentBuyNowProductVariants - currentBuyNowProductVariants",
+			// 	currentBuyNowProductVariants
+			// )
+			// ---------
+			return currentBuyNowProductVariants
+		},
+
+		resetBuyNowValuesToDefaults() {
+			// @note: just foolproofing as not really necessary as the values will be overwritten when modal is opened again
+			// current_buy_now_product_values: {} // handled via blank values sent to handleBuyNow()
+			// @TODO?
+			// current_buy_now_product_total_price: 0,
+			this.setStoreValue("current_buy_now_product_quantity", 1)
+			this.setStoreValue("current_buy_now_product_selected_variant_id", 0)
+			this.setStoreValue("is_product_with_variants", false)
+			this.setStoreValue("current_buy_now_product_variants_values", [])
 		},
 
 		setCurrentBuyNowProductTotalPrice(total_price) {
@@ -320,14 +521,17 @@ document.addEventListener("alpine:init", () => {
 			)
 
 			if (currentBuyNowProductID) {
-				const currentBuyNowProductPrice = parseFloat(
-					currentBuyNowProductValues.product_price
+				// const currentBuyNowProductPrice = parseFloat(
+				// 	currentBuyNowProductValues.product_price
+				// )
+				const currentBuyNowProductUnitPrice = this.getStoreValue(
+					"current_buy_now_product_unit_price"
 				)
 				const currentBuyNowProductQuantity = parseInt(
 					this.getStoreValue("current_buy_now_product_quantity")
 				)
 				currentBuyNowProductTotalPrice =
-					currentBuyNowProductQuantity * currentBuyNowProductPrice
+					currentBuyNowProductQuantity * currentBuyNowProductUnitPrice
 			}
 
 			currentBuyNowProductTotalPrice = currentBuyNowProductTotalPrice.toFixed(2)
