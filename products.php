@@ -190,6 +190,27 @@ $content .= "			</div>
 
 // MODAL
 
+// @TODO NEED TO DISABLE 'ADD TO BASKET' 'INCREMENT/DECREMENT' QTY IF WE HAVE VARIANTS BUT NON SELECTED!
+// setCurrentBuyNowProductSelectedVariantID
+$variantMarkupForCurrentBuyNowProduct =
+	"<template x-if='{$store}.is_product_with_variants'>" .
+	// @NOTE: <template> can have only one root element
+	"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
+	"<span>Select an option</span>" .
+	"<div class='mb-3'>" .
+	"<template x-for='variant in {$store}.current_buy_now_product_variants_values' :key='variant.id'>" .
+	// "<li x-text='variant.title'></li>" .
+	"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant(variant)' :class='checkIsCurrentVariantID(variant.id) ?``:`btn-ghost`' x-text='variant.title'></button>" .
+	"</template>" .
+	"</div>" .
+	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
+	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
+	"<input name='htmx_alpine_tailwind_demos_get_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>" .
+	// -----
+	// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
+	"</div>" .
+	"</template>";
+
 $content .=
 	// using 'shorthand conditional [&&]'
 // @see: https://alpinejs.dev/directives/bind#shorthand-conditionals
@@ -198,13 +219,18 @@ $content .=
 	"<div class='modal-box'>" .
 	// main modal content to swap out
 	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_wrapper'>" .
-	"<h3 class='font-bold text-lg' x-text='{$store}.current_buy_now_product_values.product_title'></h3>" .
+	"<h4 class='font-bold XXXtext-lg' x-text='{$store}.current_buy_now_product_values.product_title'></h4>" .
+	# +++++++++++++++++++
+	// CONDITIONAL VARIANTS MARKUP
+
+	$variantMarkupForCurrentBuyNowProduct .
+	# +++++++++++++++++++
 	// BUTTONS + INCREASE/DECREASE QUANTITY BUTTONS + PRICES
 	"<div class='form-control'>" .
 	// "<span>$<span x-text='{$store}.current_buy_now_product_total_price'></span></span>" .
 	"<span class='text-md'>" .
 	// unit price
-	"$<span class='mr-1' x-text='{$store}.current_buy_now_product_values.product_price'></span>" .
+	"$<span class='mr-1' x-text='getProductOrSelectedVariantPrice()'></span>" .
 	// total price
 	"($<span x-text='getCurrentTotalPrice()'></span>)" .
 	"</span>" . // @note: using this so we get the updated value if manual quantity inputted
@@ -226,7 +252,7 @@ $content .=
 	"</div>" . // end #htmx_alpine_tailwind_demos_get_buy_now_product_wrapper
 	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT ID for HTMX USE
 	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_values.product_id' [@NOTE an object whose property 'product_id' we bind]
-	// @note: we will modify 'current_buy_now_product_values' in case server returns a product with variants. Value here will be changed when variant is selected
+	// @note: IN THIS DEMO, VARIANTS MARKUP FOR THE MODAL IS BUILD ON THE FLY @see the variable '$variantMarkupForCurrentBuyNowProduct'
 	"<input name='htmx_alpine_tailwind_demos_get_buy_now_product_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_values.product_id'>" .
 	// MODAL ACTION
 	"<div class='modal-action'>" .
