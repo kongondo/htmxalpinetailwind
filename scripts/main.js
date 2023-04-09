@@ -194,6 +194,12 @@ document.addEventListener("alpine:init", () => {
 			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
 			const incomingIsModalOpenValue = !currentIsModalOpenValue
 
+			/* @TODO - PENDING:
+			- for products with variants, need to 'disable' some actions until a variant is selected, e.g.quantity and add to basket
+			- need to clear success message on modal re-open!
+			- htmx spinner when ajax request sent (?)
+			*/
+
 			// DOES CURRENT BUY NOW PRODUCT HAVE VARIANTS?
 			const idsOfProductsWithVariants = this.getStoreValue(
 				"ids_of_products_with_variants"
