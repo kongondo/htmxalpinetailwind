@@ -128,7 +128,7 @@ function renderNavTree($items, $maxDepth = 0, $fieldNames = '', $class = 'nav') 
 }
 
 function handleAjaxRequests($input) {
-	bd($input, '$input');
+	// bd($input, '$input');
 	$out = "<p>Sorry, we were not able to handle your request.</p>";
 	# DETERMINE HANDLER TO USE #
 	if (!empty($input->get('htmx_alpine_tailwind_demos_get_buy_now_product_id'))) {
@@ -140,7 +140,7 @@ function handleAjaxRequests($input) {
 }
 
 function processBuyNowAction($productID) {
-	bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
+	// bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
 	$productID = (int) $productID;
 	$out =
 		// add to basket success confirm

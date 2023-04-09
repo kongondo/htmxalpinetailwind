@@ -37,7 +37,6 @@ if ($config->ajax) {
 	echo $out;
 	exit();
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo _x('en', 'HTML language code'); ?>"
