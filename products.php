@@ -31,12 +31,14 @@ DEMO NOTES
 
 
 
-$demoSession = $session->htmxalpinetailwindproductsdemo;
-$demoRender = 'alpine_renders_modal';
+$demoSession = $session->get('htmxalpinetailwindproductsselectedDemo');
+$demoRender = 'demo_alpine_renders_modal';
 $demoRenderFileName = 'products-alpine-renders-modal';
-if ($demoSession === 'htmx_renders_modal') {
+// @TODO CHANGE THIS TO GET FROM functions!
+if ($demoSession === 'demo_htmx_renders_modal') {
 	$demoRenderFileName = 'products-htmx-renders-modal';
 }
+// bd($demoSession, __METHOD__ . ': $demoSession at line #' . __LINE__);
 // ------
 // LOAD CONTENT FOR PRODUCTS
 $content = $files->render("{$config->templates->path}prepend/{$demoRenderFileName}.php");

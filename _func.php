@@ -134,7 +134,7 @@ function handleAjaxRequests($input) {
 	// htmx_alpine_tailwind_demos
 	if (!empty($input->get('htmx_alpine_tailwind_demos'))) {
 		// HANDLE SWITCH DEMO
-		bd($input->get('htmx_alpine_tailwind_demos'), __METHOD__ . ': $input->get(\'htmx_alpine_tailwind_demos\') at line #' . __LINE__);
+		// bd($input->get('htmx_alpine_tailwind_demos'), __METHOD__ . ': $input->get(\'htmx_alpine_tailwind_demos\') at line #' . __LINE__);
 		// @note: no swap when switching demos; so no output
 		processSwitchDemo($input->get('htmx_alpine_tailwind_demos'));
 	} elseif (!empty($input->get('htmx_alpine_tailwind_demos_get_buy_now_product_id'))) {
@@ -162,21 +162,33 @@ function processBuyNowAction($productID) {
 }
 
 function processSwitchDemo($selectedDemo) {
-	bd($selectedDemo, __METHOD__ . ': $selectedDemo at line #' . __LINE__);
+	// bd($selectedDemo, __METHOD__ . ': $selectedDemo at line #' . __LINE__);
 	$isValidDemo = isValidDemo($selectedDemo);
 	if ($isValidDemo) {
 		// set demo to session
-		// @TODO
+		setDemoToSession($selectedDemo);
 		// get the demo options to see if we need a redirect
 		$demosList = getDemosList();
 		$demoOptions = $demosList[$selectedDemo];
-		bd($demosList, __METHOD__ . ': $demosList at line #' . __LINE__);
-		bd($demoOptions, __METHOD__ . ': $demoOptions at line #' . __LINE__);
+		// bd($demosList, __METHOD__ . ': $demosList at line #' . __LINE__);
+		// bd($demoOptions, __METHOD__ . ': $demoOptions at line #' . __LINE__);
+
+		if (!empty($demoOptions['redirect'])) {
+			// bd($demoOptions['redirect'], __METHOD__ . ': $demoOptions[\'redirect\'] - REDIRECTING TO THIS LOCATION - at line #' . __LINE__);
+			if (is_int($demoOptions['redirect'])) {
+				$pageID = $demoOptions['redirect'];
+				// bd($pageID, __METHOD__ . ': $pageID at line #' . __LINE__);
+				$redirect = wire('pages')->get($pageID)->url;
+				// bd($redirect, __METHOD__ . ': $redirect at line #' . __LINE__);
+				header("HX-Redirect: {$redirect}");
+			}
+		}
 	}
 }
 
 function setDemoToSession(string $selectedDemo) {
-	wire('session')->set('htmxalpinetailwindproductsselectedDemo', $demo);
+	wire('session')->set('htmxalpinetailwindproductsselectedDemo', $selectedDemo);
+	// bd($selectedDemo, __METHOD__ . ': $selectedDemo at line #' . __LINE__);
 }
 
 
@@ -235,16 +247,23 @@ function getFormattedPrice(float $price) {
 // @TODO HARDCODED FOR NOW; in future might use a 'demos' folder
 function getDemosList(): array {
 	$demosList = [
-		'alpine_renders_modal' => [
+		'demo_alpine_renders_modal' => [
 			'label' => 'Alpine.js Renders Modal',
 			'file' => 'products-alpine-renders-modal',
 			'description' => 'Product details in the buy now modal are rendered from client-side using Alpine.js. The data is pre-populated when the products page is rendered. This data contains details of product variants where applicable.'
 		],
-		'htmx_renders_modal' => [
+		'demo_htmx_renders_modal' => [
 			'label' => 'htmx Renders Modal',
 			'file' => 'products-htmx-renders-modal',
 			'description' => 'Product details in the buy now modal are fetched from the server when the modal is opened. The fetching is done via htmx which sends the ID of the product to the server using a get request. On the server, the request is pre-processed. Processing also determines if the product has variants. The returned markup contains Aline.js markup as well. When the modal is closed, Alpine.js clears the previous markup.',
-			'redirect' => 1001
+		],
+		'demo_htmx_redirect_from_server' => [
+			'label' => 'htmx Redirect from Server',
+			'file' => null,
+			// none needed; we are just
+			// @see: processSwitchDemo() for how we set the redirect via PHP header
+			'description' => 'Not a display demo. Shows how to redirect from the backend using htmx.',
+			'redirect' => 1 // ProcessWire home page
 		],
 	];
 
@@ -258,6 +277,9 @@ function renderDemosSelectMarkup() {
 // @note: some demos redirect!
 // @note: home page handles the ajax requests
 	$out = "<select name='htmx_alpine_tailwind_demos'  hx-get='/' hx-swap='none' >";
+	// empty option
+	// @TODO SET A DEFAULT ONE?
+	$out .= "<option value='0' xxdisabled>Select a demo</option>";
 	// @note: $key will be the session value we set
 	foreach ($demosList as $key => $option) {
 		$out .= "<option value='{$key}'>{$option['label']}</option>";
