@@ -171,8 +171,10 @@ function processBuyNowAction($productID) {
 	// bd($isIncludedFile, __METHOD__ . ': $isIncludedFile at line #' . __LINE__);
 	bd($testing, __METHOD__ . ': $testing at line #' . __LINE__);
 
+	$out = $testing;
+
 	# ++++++++++++++++++
-	$out =
+	$outMOVETOALPINERENDERFILE =
 		// add to basket success confirm
 		"<div class='alert alert-success shadow-lg mt-3'>
 		<div>
