@@ -235,18 +235,18 @@ $content .=
 	"($<span x-text='getCurrentTotalPrice()'></span>)" .
 	"</span>" . // @note: using this so we get the updated value if manual quantity inputted
 	"<div class='input-group'>" .
-	"<button class='btn btn-outline btn' @click='handleBuyNowQuantity(-1)'>&minus;</button>" .
-	"<input name='htmx_alpine_tailwind_demos_get_buy_now_quantity' class='w-14 border border-x-0 border-black bg-transparent text-center input input-bordered htmx_alpine_tailwind_demos_buy_now' type='number' value='1' min='1' x-model='{$store}.current_buy_now_product_quantity'/>" .
-	"<button class='btn btn-outline' @click='handleBuyNowQuantity(1)'>&plus;</button>" .
-	"<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart'>Add to basket</button>" .
+	// @note: note the :disabled bind! '-' & '+' buttons, the quantity input and 'add to basket' will be disabled if product has variants and none is yet selected
+	"<button class='btn btn-outline btn' @click='handleBuyNowQuantity(-1)' :disabled='{$store}.is_need_to_select_a_variant'>&minus;</button>" .
+	"<input name='htmx_alpine_tailwind_demos_get_buy_now_quantity' class='w-14 border border-x-0 border-black bg-transparent text-center input input-bordered htmx_alpine_tailwind_demos_buy_now' type='number' value='1' min='1' x-model.number='{$store}.current_buy_now_product_quantity'  :disabled='{$store}.is_need_to_select_a_variant'/>" .
+	"<button class='btn btn-outline' @click='handleBuyNowQuantity(1)' :disabled='{$store}.is_need_to_select_a_variant'>&plus;</button>" .
+	"<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart' :disabled='{$store}.is_need_to_select_a_variant'>Add to basket</button>" .
 	"</div>" .
 	"</div>" .
 
 	// ------
 	// ELEMENT FOR HTMX SWAP
 	// @note: will show success/fail of add to basket
-	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_notice'>" .
-	"<p>Please add item to basket.</p>" .
+	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_notice' x-ref='htmx_alpine_tailwind_demos_get_buy_now_product_notice'>" .
 	"</div>" .
 	// ----------
 	"</div>" . // end #htmx_alpine_tailwind_demos_get_buy_now_product_wrapper

@@ -127,6 +127,7 @@ document.addEventListener("alpine:init", () => {
 		current_buy_now_product_variant_values: {},
 		current_buy_now_product_variants_values: [],
 		current_buy_now_product_quantity: 1,
+		is_need_to_select_a_variant: false,
 		// ----
 		// @note: could be the product or its selected variant's price!
 		current_buy_now_product_unit_price: 0,
@@ -135,17 +136,6 @@ document.addEventListener("alpine:init", () => {
 		ids_of_products_with_variants: [],
 		all_products_variants: {},
 		is_product_with_variants: false,
-
-		// @TODO - DELETE UNUSED!
-		/* product attributes */
-		product_attributes: [],
-		/* product attributes options */
-		attributes_options: [],
-		// main product
-		main_product: {},
-		// all product variants
-		product_variants: [],
-		// ************
 	})
 
 	Alpine.data("HtmxAlpineTailwindDemosData", () => ({
@@ -195,8 +185,6 @@ document.addEventListener("alpine:init", () => {
 			const incomingIsModalOpenValue = !currentIsModalOpenValue
 
 			/* @TODO - PENDING:
-			- for products with variants, need to 'disable' some actions until a variant is selected, e.g.quantity and add to basket
-			- need to clear success message on modal re-open!
 			- htmx spinner when ajax request sent (?)
 			*/
 
@@ -215,6 +203,8 @@ document.addEventListener("alpine:init", () => {
 				this.setCurrentBuyNowProductVariants(currentBuyNowProductID)
 				// product has variants! - set flag to display them
 				this.setStoreValue("is_product_with_variants", true)
+				// disable product quantity and add to basket actions/elements until a variant is selected
+				this.setStoreValue("is_need_to_select_a_variant", true)
 			}
 			// set current buy now product values to the store
 			this.setCurrentBuyNowProductValues(product_values)
@@ -233,6 +223,7 @@ document.addEventListener("alpine:init", () => {
 
 			// =========
 			// if modal is closing, reset 'current by now product' values to defaults
+			// also empty htmx populated notice for 'item added to basket'
 			if (!incomingIsModalOpenValue) {
 				this.resetBuyNowValuesToDefaults()
 			}
@@ -293,29 +284,34 @@ document.addEventListener("alpine:init", () => {
 			const currentBuyNowProductID = parseInt(
 				currentBuyNowProductValues.product_id
 			)
-			debugLogger(`BUY NOW PRODUCT ID: ${currentBuyNowProductID}`)
+			// debugLogger(`BUY NOW PRODUCT ID: ${currentBuyNowProductID}`)
 			if (currentBuyNowProductID) {
 				// WE HAVE A CURRENT BUY NOW PRODUCT ID: process the modal!
+				// ----------
+				// @note: $dispatch doesn't work with htmx
 				// this.$dispatch("HtmxAlpineTailwindDemosGetBuyNowProduct", {
 				// 	current_buy_now_product_id: currentBuyNowProductID,
 				// })
-				debugLogger(
-					`WE HAVE A BUY NOW PRODUCT ID: trigger htmx!: ${currentBuyNowProductID}`
-				)
+				// debugLogger(
+				// 	`WE HAVE A BUY NOW PRODUCT ID: trigger htmx!: ${currentBuyNowProductID}`
+				// )
 				const triggerElementID =
 					"#htmx_alpine_tailwind_demos_get_buy_now_product_wrapper"
 				const triggerEvent = "HtmxAlpineTailwindDemosGetBuyNowProduct"
 				// const eventDetails = {
 				// 	current_buy_now_product_id: currentBuyNowProductID,
 				// }
-				debugLogger(`triggerElementID for htmx!: ${triggerElementID}`)
-				debugLogger(`triggerEvent for htmx!: ${triggerEvent}`)
+				// debugLogger(`triggerElementID for htmx!: ${triggerElementID}`)
+				// debugLogger(`triggerEvent for htmx!: ${triggerEvent}`)
 				// debugLogger(`eventDetails for htmx!: ${eventDetails}`)
 				// @NOTE: WE DELAY triggering htmx TO AVOID RACE CONDITION
 				// @NOTE: delay:300ms won't work on htmx target since it won't detect the change in the hidden input on time
 				setTimeout(() => {
+					// @note: $dispatch doesn't work with htmx
+					// this.$dispatch(triggerElementID, triggerEvent)
 					// htmx.trigger(triggerElementID, triggerEvent, eventDetails)
 					htmx.trigger(triggerElementID, triggerEvent)
+					// @note: $dispatch doesn't work with htmx
 				}, 150)
 			}
 			// @TODO DO WE NEED TO HANDLE 'else'?
@@ -384,9 +380,9 @@ document.addEventListener("alpine:init", () => {
 				"current_buy_now_product_variant_values",
 				buy_now_product_variant_values
 			)
-			debugLogger(
-				`current_buy_now_variant_id: ${buy_now_product_variant_values.id}`
-			)
+			// debugLogger(
+			// 	`current_buy_now_variant_id: ${buy_now_product_variant_values.id}`
+			// )
 			// console.log(
 			// 	"setCurrentBuyNowProductSelectedVariant - buy_now_product_variant_values",
 			// 	buy_now_product_variant_values
@@ -403,6 +399,7 @@ document.addEventListener("alpine:init", () => {
 			}
 			debugLogger(`variantUnitPrice: ${variantUnitPrice}`)
 			this.setStoreValue("current_buy_now_product_unit_price", variantUnitPrice)
+			this.setStoreValue("is_need_to_select_a_variant", false)
 		},
 
 		checkIsCurrentVariantID(variant_id) {
@@ -509,6 +506,9 @@ document.addEventListener("alpine:init", () => {
 			this.setStoreValue("current_buy_now_product_selected_variant_id", 0)
 			this.setStoreValue("is_product_with_variants", false)
 			this.setStoreValue("current_buy_now_product_variants_values", [])
+			// -
+			// empty htmx populated notice for item added to basket
+			this.$refs.htmx_alpine_tailwind_demos_get_buy_now_product_notice.replaceChildren()
 		},
 
 		setCurrentBuyNowProductTotalPrice(total_price) {
