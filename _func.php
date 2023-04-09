@@ -172,16 +172,29 @@ function processSwitchDemo($selectedDemo) {
 		$demoOptions = $demosList[$selectedDemo];
 		// bd($demosList, __METHOD__ . ': $demosList at line #' . __LINE__);
 		// bd($demoOptions, __METHOD__ . ': $demoOptions at line #' . __LINE__);
+		// $redirect = "";
 
 		if (!empty($demoOptions['redirect'])) {
+			$pages = wire('pages');
 			// bd($demoOptions['redirect'], __METHOD__ . ': $demoOptions[\'redirect\'] - REDIRECTING TO THIS LOCATION - at line #' . __LINE__);
-			if (is_int($demoOptions['redirect'])) {
-				$pageID = $demoOptions['redirect'];
+			$redirect = $demoOptions['redirect'];
+			// bd($redirect, __METHOD__ . ': $redirect at line #' . __LINE__);
+			if (is_int($redirect)) {
+				$pageID = $redirect;
 				// bd($pageID, __METHOD__ . ': $pageID at line #' . __LINE__);
-				$redirect = wire('pages')->get($pageID)->url;
-				// bd($redirect, __METHOD__ . ': $redirect at line #' . __LINE__);
-				header("HX-Redirect: {$redirect}");
+				$redirectHeader = $pages->get($pageID)->url;
+				// bd($redirectHeader, __METHOD__ . ': $redirectHeader at line #' . __LINE__);
+
+			} else {
+				// @TODO - OK? MULTILINGUAL?
+				// redirect is the 'name' or 'title' of the page
+				$name = wire('sanitizer')->pageName($redirect);
+				$redirectHeader = $pages->get("name={$name}")->url;
 			}
+
+			// bd($redirectHeader, __METHOD__ . ': $redirectHeader at line #' . __LINE__);
+
+			header("HX-Redirect: {$redirectHeader}");
 		}
 	}
 }
@@ -250,12 +263,16 @@ function getDemosList(): array {
 		'demo_alpine_renders_modal' => [
 			'label' => 'Alpine.js Renders Modal',
 			'file' => 'products-alpine-renders-modal',
-			'description' => 'Product details in the buy now modal are rendered from client-side using Alpine.js. The data is pre-populated when the products page is rendered. This data contains details of product variants where applicable.'
+			'description' => 'Product details in the buy now modal are rendered from client-side using Alpine.js. The data is pre-populated when the products page is rendered. This data contains details of product variants where applicable.',
+			// we need to redirect in order to have the related 'render file' to be rendered
+			'redirect' => 'products' // products page
 		],
 		'demo_htmx_renders_modal' => [
 			'label' => 'htmx Renders Modal',
 			'file' => 'products-htmx-renders-modal',
 			'description' => 'Product details in the buy now modal are fetched from the server when the modal is opened. The fetching is done via htmx which sends the ID of the product to the server using a get request. On the server, the request is pre-processed. Processing also determines if the product has variants. The returned markup contains Aline.js markup as well. When the modal is closed, Alpine.js clears the previous markup.',
+			// we need to redirect in order to have the related 'render file' to be rendered
+			'redirect' => 'products' // products page
 		],
 		'demo_htmx_redirect_from_server' => [
 			'label' => 'htmx Redirect from Server',
