@@ -273,7 +273,7 @@ document.addEventListener("alpine:init", () => {
 		},
 
 		handUpdateCart() {
-			debugLogger(`WE WILL TRIGGER HTMX TO TELL SERVER TO UPDATE CART!`)
+			// debugLogger(`WE WILL TRIGGER HTMX TO TELL SERVER TO UPDATE CART!`)
 			this.processBuyNow()
 		},
 
@@ -397,7 +397,7 @@ document.addEventListener("alpine:init", () => {
 				// @note: property for main product is 'product_price'!
 				variantUnitPrice = currentBuyNowProduct.product_price
 			}
-			debugLogger(`variantUnitPrice: ${variantUnitPrice}`)
+			// debugLogger(`variantUnitPrice: ${variantUnitPrice}`)
 			this.setStoreValue("current_buy_now_product_unit_price", variantUnitPrice)
 			this.setStoreValue("is_need_to_select_a_variant", false)
 		},
