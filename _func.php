@@ -149,6 +149,29 @@ function handleAjaxRequests($input) {
 function processBuyNowAction($productID) {
 	// bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
 	$productID = (int) $productID;
+
+	// @NOTE: JUST FOR THE DEMOS, WE CHECK THE SESSION FOR THE CURRENTLY SELECTED DEMO
+	// THIS WILL ALLOW US TO TAILOR OUR RESPONSE, e.g. server-side rendered (near) full modal markup vs
+	// MINIMAL MARKUP FROM SERVER ONLY FOR 'success' notices
+
+	$currentDemo = getDemoFromSession();
+	// bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
+	// @TODO @NOTE: FOR NOW, WE JUST CHECK DEMO NAMES HERE; IDEALLY, WE SHOULD BE FETCHING THE RESPONSE FROM THE DEMO RENDERER FILES THEMESELVES?
+	// demo_alpine_renders_modal OR demo_htmx_renders_modal
+
+	// get options for current demo
+	$demoOptions = getDemoByKey($currentDemo);
+	bd($demoOptions, __METHOD__ . ': $demoOptions at line #' . __LINE__);
+	// get full path to current demo's renderer file
+	$demoFilePath = getDemoFilePath($demoOptions);
+	bd($demoFilePath, __METHOD__ . ': $demoFilePath at line #' . __LINE__);
+	// include the file to get the variable with contents for the modal
+	// $isIncludedFile = wire('files')->render($demoFilePath);
+	require_once($demoFilePath);
+	// bd($isIncludedFile, __METHOD__ . ': $isIncludedFile at line #' . __LINE__);
+	bd($testing, __METHOD__ . ': $testing at line #' . __LINE__);
+
+	# ++++++++++++++++++
 	$out =
 		// add to basket success confirm
 		"<div class='alert alert-success shadow-lg mt-3'>
@@ -199,9 +222,33 @@ function processSwitchDemo($selectedDemo) {
 	}
 }
 
-function setDemoToSession(string $selectedDemo) {
+function setDemoToSession(string $selectedDemo): void {
 	wire('session')->set('htmxalpinetailwindproductsselectedDemo', $selectedDemo);
 	// bd($selectedDemo, __METHOD__ . ': $selectedDemo at line #' . __LINE__);
+}
+
+function getDemoFromSession() {
+	$currentDemo = wire('session')->get('htmxalpinetailwindproductsselectedDemo');
+	// bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
+	return $currentDemo;
+}
+
+function getDemoByKey($demoKey) {
+	$demosList = getDemosList();
+	$demoOptions = null;
+	if (!empty($demosList[$demoKey])) {
+		$demoOptions = $demosList[$demoKey];
+	}
+	// -----
+	return $demoOptions;
+}
+
+function getDemoFilePath(array $demoOptions): string {
+
+	$demoFilename = $demoOptions['file'];
+	$demoFilePath = wire('config')->templates->path . "prepend/{$demoFilename}.php";
+	// -----
+	return $demoFilePath;
 }
 
 

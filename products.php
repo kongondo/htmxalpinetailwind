@@ -41,4 +41,6 @@ if ($demoSession === 'demo_htmx_renders_modal') {
 // bd($demoSession, __METHOD__ . ': $demoSession at line #' . __LINE__);
 // ------
 // LOAD CONTENT FOR PRODUCTS
-$content = $files->render("{$config->templates->path}prepend/{$demoRenderFileName}.php");
+// $content = $files->render("{$config->templates->path}prepend/{$demoRenderFileName}.php");
+require_once("{$config->templates->path}prepend/{$demoRenderFileName}.php");
+bd($content, __METHOD__ . ': $content at line #' . __LINE__);

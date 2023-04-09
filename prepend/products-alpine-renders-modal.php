@@ -1,14 +1,18 @@
 <?php
 namespace ProcessWire;
 
-// products.php template file
+// DEMO: ALPINE.js RENDERS  MODAL
+// render for products.php template file
 
+$testing = 'testing alpine';
+$pages = wire('pages');
+$sanitizer = wire('sanitizer');
 /*
 >>>>>>>>>>>>>>>>>>>>>>>>
 DEMO NOTES
 1. Demo 'buy now' action
 2. Alpine.js handles the action
--  opens/closses a modal
+-  opens/closes a modal
 - set ID of the current buy now product
 - this ID is modeled by a hidden input #htmx_alpine_tailwind_demos_buy_now_product_id
 - Alpine dispatches a custom event that htmx is listening to.
@@ -32,9 +36,10 @@ DEMO NOTES
 // $title = $alpineJSVariable;
 
 // Primary content is the page's body copy
-// $out = $page->get('body');
+// $content = $page->get('body');
 
-$breadcrumb = buildBreadCrumb($page);
+// $breadcrumb = buildBreadCrumb($page);
+$breadcrumb = buildBreadCrumb(wire('page'));
 
 # >>>> HTMX <<<<
 
@@ -59,12 +64,12 @@ $htmxMarkupForBuyNow = "hx-trigger='{$hxTrigger}' hx-target='{$hxTarget}' hx-get
 $store = '$store.HtmxAlpineTailwindDemosStore';
 
 // @note: just for consistency @see below $buyNowValues
-$defaultByNowValues = [
+$defaultBuNowValues = [
   'product_id' => 0,
   'product_price' => 0,
   'product_title' => '',
 ];
-$defaultByNowValuesJSON = json_encode($defaultByNowValues);
+$defaultBuNowValuesJSON = json_encode($defaultBuNowValues);
 
 $selectorArray = [
   'template' => 'product',
@@ -112,12 +117,12 @@ $idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
 
 
 // @TODO YOU NEED TO ADD YOUR OWN CHECKS HERE IF IMAGES EXIST!
-// $out .= "<div class='not-prose XXXgrid XXXgap-4 XXXmd:grid-cols-4 XXXlg:grid-cols-5'>";
+// $content .= "<div class='not-prose XXXgrid XXXgap-4 XXXmd:grid-cols-4 XXXlg:grid-cols-5'>";
 // @NOTE: 'XXXclass' are classes temporarily retained; might be deleted in future
-// $out .= "<div class='flex min-h-screen w-full flex-wrap content-center justify-center p-5 bg-gray-200'>
+// $content .= "<div class='flex min-h-screen w-full flex-wrap content-center justify-center p-5 bg-gray-200'>
 // <div class='grid grid-cols-2 gap-3'>";
-// $out .= "<div class='flex items-center justify-center min-h-screen from-[#F9F5F3] via-[#F9F5F3] to-[#F9F5F3] bg-gradient-to-br px-2 flex-wrap'>";
-$out = "
+// $content .= "<div class='flex items-center justify-center min-h-screen from-[#F9F5F3] via-[#F9F5F3] to-[#F9F5F3] bg-gradient-to-br px-2 flex-wrap'>";
+$content = "
 <section class='not-prose' x-init='setProductsVariantsData({$idsOfProductsWithVariantsJSON},{$allProductsVariantsJSON})'>
 <div class='mx-auto grid grid-cols-1 gap-6 p-6 XXXsm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'>
 ";
@@ -148,7 +153,7 @@ foreach ($products as $product) {
 
   // =======
   // @TODO NOT SURE ABOUT CSS 'object-attrs' below!
-  $out .=
+  $content .=
     // ** PRODUCT CARD **
     "<article class='rounded-xl XXXbg-white bg-slate-50 p-3 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 '>" .
     "<a href='{$product->url}'>" .
@@ -184,10 +189,10 @@ foreach ($products as $product) {
     "</article>";
 
 }
-// $out .= "</div>";
-$out .= "			</div>
+// $content .= "</div>";
+$content .= "			</div>
 </section>";
-// $out .= "	</div>
+// $content .= "	</div>
 // </div>";
 
 // MODAL
@@ -213,11 +218,11 @@ $variantMarkupForCurrentBuyNowProduct =
   "</div>" .
   "</template>";
 
-$out .=
+$content .=
   // using 'shorthand conditional [&&]'
 // @see: https://alpinejs.dev/directives/bind#shorthand-conditionals
   "<div class='modal modal-bottom sm:modal-middle' :class='{$store}.is_modal_open && `modal-open`' {$htmxMarkupForBuyNow}>" .
-  // MODAL CONTENT - part of itwill be 'swapped' using htmx
+  // MODAL CONTENT - part of it will be 'swapped' using htmx
   "<div class='modal-box'>" .
   // main modal content to swap out
   "<div id='htmx_alpine_tailwind_demos_get_buy_now_product_wrapper'>" .
@@ -260,7 +265,7 @@ $out .=
   "<div class='modal-action'>" .
   // on click this 'close button', we set current buy now product to '0'
   // THIS WILL close the modal and reset current buy now values in the Alpine.js store 'HtmxAlpineTailwindDemosStore'
-  "<button class='btn XXXbtn-ghost btn-secondary' @click='handleBuyNow({$defaultByNowValuesJSON})'>close</button>" .
+  "<button class='btn XXXbtn-ghost btn-secondary' @click='handleBuyNow({$defaultBuNowValuesJSON})'>close</button>" .
   "</div>" .
   // ----
   "</div>" .
@@ -270,6 +275,6 @@ $out .=
 // ====
 // @SEE ABOVE @UPDATE: WE NOW SET DIRECTLY IN AN x-initi
 // variants script if available
-// $out .= $variantsScript;
+// $content .= $variantsScript;
 ///////////////////
-echo $out;
+// echo $content;
