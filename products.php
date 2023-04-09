@@ -78,7 +78,7 @@ $productsIDs = $products->explode('id');
 $allProductsVariants = [];
 $idsOfProductsWithVariants = [];
 $variantsScript = '';
-bd($products, 'products');
+// bd($products, 'products');
 if (!empty($productsIDs)) {
 	$parentProductsIDsStr = implode("|", $productsIDs);
 	// @note: don't really need the template part but just being thorough
@@ -88,8 +88,8 @@ if (!empty($productsIDs)) {
 	$allProductsVariants = $pages->findRaw($variantsSelector, $variantsFields);
 	$idsOfProductsWithVariants = array_unique(array_column($allProductsVariants, 'parent_id'));
 }
-bd($allProductsVariants, 'allProductsVariants');
-bd($idsOfProductsWithVariants, 'idsOfProductsWithVariants');
+// bd($allProductsVariants, 'allProductsVariants');
+// bd($idsOfProductsWithVariants, 'idsOfProductsWithVariants');
 
 // SCRIPT TO SEND VARIANTS DATA TO BROWSER
 // for alpine for use in modal for 'BUY NOW'
@@ -139,7 +139,7 @@ foreach ($products as $product) {
 	if (in_array($product->id, $idsOfProductsWithVariants)) {
 		// @TODO
 		$variantsForProduct = getVariantsForAProduct($allProductsVariants, 'parent_id', $product->id);
-		bd($variantsForProduct, 'variantsForProduct');
+		// bd($variantsForProduct, 'variantsForProduct');
 		$productPriceStr = "from {$productPriceStr}";
 	}
 
