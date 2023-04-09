@@ -30,6 +30,9 @@ namespace ProcessWire;
  *
  */
 if ($config->ajax) {
+	// @NOTE: EXAMPLE REDIRECT for 'htmx'
+	// $redirect = $pages->get(1001)->url;
+	// header("HX-Redirect: {$redirect}");
 	// HANDLE AJAX REQUESTS
 	// we pass to a handler function
 	// @note: we could access $input DIRECTLY in the function as well
@@ -91,13 +94,24 @@ if ($config->ajax) {
 
 <body class="container mx-auto prose md:prose-lg lg:prose-xl max-w-none p-5">
 	<header>
-		<div class="mt-3 mb-5">
-			<p>Theme</p>
-			<select name="" id="" x-model="$store.HtmxAlpineTailwindDemosStore.current_theme">
-				<template x-for="(theme, index) in getDaisyUIThemes()">
-					<option :value="theme" x-text="theme" :selected="theme == getCurrentTheme()"></option>
-				</template>
-			</select>
+		<div class='flex space-x-4 mt-3 mb-5'>
+			<!-- THEMES -->
+			<div>
+				<p>Theme</p>
+				<select name="" id="" x-model="$store.HtmxAlpineTailwindDemosStore.current_theme">
+					<template x-for="(theme, index) in getDaisyUIThemes()">
+						<option :value="theme" x-text="theme" :selected="theme == getCurrentTheme()"></option>
+					</template>
+				</select>
+			</div>
+			<!-- DEMOS -->
+			<div>
+				<p>Select Demo</p>
+				<?php
+				$demosSelectMarkup = renderDemosSelectMarkup();
+				echo $demosSelectMarkup;
+				?>
+			</div>
 		</div>
 		<?php
 		echo $breadcrumb;
