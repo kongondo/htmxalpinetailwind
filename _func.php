@@ -154,17 +154,7 @@ function processBuyNowAction($productID) {
 	// THIS WILL ALLOW US TO TAILOR OUR RESPONSE, e.g. server-side rendered (near) full modal markup vs
 	// MINIMAL MARKUP FROM SERVER ONLY FOR 'success' notices
 
-	$currentDemo = getDemoFromSession();
-	bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
-	// @TODO @NOTE: FOR NOW, WE JUST CHECK DEMO NAMES HERE; IDEALLY, WE SHOULD BE FETCHING THE RESPONSE FROM THE DEMO RENDERER FILES THEMESELVES?
-	// demo_alpine_renders_modal OR demo_htmx_renders_modal
-
-	// get options for current demo
-	$demoOptions = getDemoByKey($currentDemo);
-	bd($demoOptions, __METHOD__ . ': $demoOptions at line #' . __LINE__);
-	// get full path to current demo's renderer file
-	$demoFilePath = getDemoFilePath($demoOptions);
-	bd($demoFilePath, __METHOD__ . ': $demoFilePath at line #' . __LINE__);
+	$demoFilePath = getDemoFilePathFromSession();
 	// include the file to get the variable with contents for the modal
 	// $isIncludedFile = wire('files')->render($demoFilePath);
 	require_once($demoFilePath);
@@ -239,13 +229,32 @@ function getDemoByKey($demoKey) {
 }
 
 function getDemoFilePath(array $demoOptions): string {
-
 	$demoFilename = $demoOptions['file'];
-	$demoFilePath = wire('config')->templates->path . "prepend/{$demoFilename}.php";
+	$demoFilePath = wire('config')->templates->path . "demos/{$demoFilename}.php";
 	// -----
 	return $demoFilePath;
 }
 
+/**
+ * Get file path to the render file for the current demo.
+ * @return string
+ */
+function getDemoFilePathFromSession() {
+	$currentDemo = getDemoFromSession();
+	// bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
+	// @TODO @NOTE: FOR NOW, WE JUST CHECK DEMO NAMES HERE; IDEALLY, WE SHOULD BE FETCHING THE RESPONSE FROM THE DEMO RENDERER FILES THEMESELVES?
+	// demo_alpine_renders_modal OR demo_htmx_renders_modal
+
+	// get options for current demo
+	$demoOptions = getDemoByKey($currentDemo);
+	// bd($demoOptions, __METHOD__ . ': $demoOptions at line #' . __LINE__);
+	// get full path to current demo's renderer file
+	$demoFilePath = getDemoFilePath($demoOptions);
+	// bd($demoFilePath, __METHOD__ . ': $demoFilePath at line #' . __LINE__);
+	// bd(wire('files')->exists($demoFilePath), __METHOD__ . ': wire(\'files\')->exists($demoFilePath) at line #' . __LINE__);
+	// ------
+	return $demoFilePath;
+}
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -304,14 +313,14 @@ function getDemosList(): array {
 	$demosList = [
 		'demo_alpine_renders_modal' => [
 			'label' => 'Alpine.js Renders Modal',
-			'file' => 'products-alpine-renders-modal',
+			'file' => 'alpine_renders_modals/products-alpine-renders-modal',
 			'description' => 'Product details in the buy now modal are rendered from client-side using Alpine.js. The data is pre-populated when the products page is rendered. This data contains details of product variants where applicable.',
 			// we need to redirect in order to have the related 'render file' to be rendered
 			'redirect' => 'products' // products page
 		],
 		'demo_htmx_renders_modal' => [
 			'label' => 'htmx Renders Modal',
-			'file' => 'products-htmx-renders-modal',
+			'file' => 'demo_htmx_renders_modal/products-htmx-renders-modal',
 			'description' => 'Product details in the buy now modal are fetched from the server when the modal is opened. The fetching is done via htmx which sends the ID of the product to the server using a get request. On the server, the request is pre-processed. Processing also determines if the product has variants. The returned markup contains Aline.js markup as well. When the modal is closed, Alpine.js clears the previous markup.',
 			// we need to redirect in order to have the related 'render file' to be rendered
 			'redirect' => 'products' // products page
