@@ -33,14 +33,17 @@ $breadcrumb = buildBreadCrumb($page);
 
 $demoSession = $session->get('htmxalpinetailwindproductsselectedDemo');
 $demoRender = 'demo_alpine_renders_modal';
-$demoRenderFileName = 'products-alpine-renders-modal';
+$demoRenderFileName = 'alpine_renders_modals/products-alpine-renders-modal';
 // @TODO CHANGE THIS TO GET FROM functions!
-if ($demoSession === 'demo_htmx_renders_modal') {
-	$demoRenderFileName = 'products-htmx-renders-modal';
-}
+// if ($demoSession === 'demo_htmx_renders_modal') {
+// 	$demoRenderFileName = 'htmx_renders_modals/products-htmx-renders-modal';
+// }
 // bd($demoSession, __METHOD__ . ': $demoSession at line #' . __LINE__);
 // ------
 // LOAD CONTENT FOR PRODUCTS @update @TODO WE NOW GET THE VARIABLES INSTEAD!
-// $content = $files->render("{$config->templates->path}prepend/{$demoRenderFileName}.php");
+// $content = $files->render("{$config->templates->path}demos/{$demoRenderFileName}.php");
 // @note: this will populate $content and other variables as needed
-require_once("{$config->templates->path}prepend/{$demoRenderFileName}.php");
+$demoRenderFilePath = getDemoFilePathFromSession();
+// bd($demoRenderFilePath, __METHOD__ . ': $demoRenderFilePath at line #' . __LINE__);
+// bd(wire('files')->exists($demoRenderFilePath), __METHOD__ . ': wire(\'files\')->exists($demoRenderFilePath) at line #' . __LINE__);
+require_once($demoRenderFilePath);
