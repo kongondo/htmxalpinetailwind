@@ -113,30 +113,78 @@ $allProductsVariantsJSON = json_encode($allProductsVariants);
 $idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~ OUTPUTS ~~~~~~~~~~~~~~~
-# **********
-// MOCK RESPONSE FOR MODAL BUY NOW
+# ********** MODAL **********
+
+// 1. RESPONSE FOR MODAL BUY NOW (product title, variants if any, increase/decrease quantity, add to basket button, etc.)
+
+$titleMarkupForCurrentBuyNowProduct = "<h4 class='font-bold XXXtext-lg' x-text='{$store}.
+current_buy_now_product_values.product_title'></h4>";
+
+// @TODO NEED TO DISABLE 'ADD TO BASKET' 'INCREMENT/DECREMENT' QTY IF WE HAVE VARIANTS BUT NON SELECTED!
+// setCurrentBuyNowProductSelectedVariantID
+$variantMarkupForCurrentBuyNowProduct =
+	"<template x-if='{$store}.is_product_with_variants'>" .
+	// @NOTE: <template> can have only one root element
+	"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
+	"<span>Select an option</span>" .
+	"<div class='mb-3'>" .
+	"<template x-for='variant in {$store}.current_buy_now_product_variants_values' :key='variant.id'>" .
+	// "<li x-text='variant.title'></li>" .
+	"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant(variant)' :class='checkIsCurrentVariantID(variant.id) ?``:`btn-ghost`' x-text='variant.title'></button>" .
+	"</template>" .
+	"</div>" .
+	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
+	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
+	"<input name='htmx_alpine_tailwind_demos_get_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>" .
+	// -----
+	// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
+	"</div>" .
+	"</template>";
+
+# CART ACTIONS: -/+ BUTTONS, QUANTITY INPUT + ADD TO BASKET BUTTON
+
+$cartActionsMarkupForCurrentBuyNowProduct = "<div class='form-control'>" .
+	"<span class='text-md'>" .
+	// unit price
+	"$<span class='mr-1' x-text='getProductOrSelectedVariantPrice()'></span>" .
+	// total price
+	"($<span x-text='getCurrentTotalPrice()'></span>)" .
+	"</span>" . // @note: using this so we get the updated value if manual quantity inputted
+	"<div class='input-group'>" .
+	// @note: note the :disabled bind! '-' & '+' buttons, the quantity input and 'add to basket' will be disabled if product has variants and none is yet selected
+	"<button class='btn btn-outline btn' @click='handleBuyNowQuantity(-1)' :disabled='{$store}.is_need_to_select_a_variant'>&minus;</button>" .
+	"<input name='htmx_alpine_tailwind_demos_get_buy_now_quantity' class='w-14 border border-x-0 border-black bg-transparent text-center input input-bordered htmx_alpine_tailwind_demos_buy_now' type='number' value='1' min='1' x-model.number='{$store}.current_buy_now_product_quantity'  :disabled='{$store}.is_need_to_select_a_variant'/>" .
+	"<button class='btn btn-outline' @click='handleBuyNowQuantity(1)' :disabled='{$store}.is_need_to_select_a_variant'>&plus;</button>" .
+
+	# ADD TO BASKET BUTTON
+	"<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart' :disabled='{$store}.is_need_to_select_a_variant'>Add to basket</button>" .
+	"</div>" .
+	"</div>";
+// END: modal markup for fetch current buy now product using htmx
+// ----------
+// 2. MOCK RESPONSE FOR MODAL BUY NOW
 $modalOutput =
 	// add to basket success confirm
 	"<div class='alert alert-success shadow-lg mt-3'>
-<div>
-	<svg xmlns='http://www.w3.org/2000/svg' class='stroke-current flex-shrink-0 h-6 w-6' fill='none' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
-	<span class='text-sm'>Product has been added to your basket successfully.</span>
-</div>
-</div>";
+		<div>
+			<svg xmlns='http://www.w3.org/2000/svg' class='stroke-current flex-shrink-0 h-6 w-6' fill='none' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
+			<span class='text-sm'>Product has been added to your basket successfully.</span>
+			</div>
+	</div>";
+// END: modal markup for fetch response to 'add to basket' using htmx
+# ============================== END MODAL MARKUP ==============
 
 # **********
 // CONTENT for $content for _main.php
 
 // @TODO YOU NEED TO ADD YOUR OWN CHECKS HERE IF IMAGES EXIST!
-// $content .= "<div class='not-prose XXXgrid XXXgap-4 XXXmd:grid-cols-4 XXXlg:grid-cols-5'>";
-// @NOTE: 'XXXclass' are classes temporarily retained; might be deleted in future
-// $content .= "<div class='flex min-h-screen w-full flex-wrap content-center justify-center p-5 bg-gray-200'>
-// <div class='grid grid-cols-2 gap-3'>";
-// $content .= "<div class='flex items-center justify-center min-h-screen from-[#F9F5F3] via-[#F9F5F3] to-[#F9F5F3] bg-gradient-to-br px-2 flex-wrap'>";
+
 $content = "
 <section class='not-prose' x-init='setProductsVariantsData({$idsOfProductsWithVariantsJSON},{$allProductsVariantsJSON})'>
 <div class='mx-auto grid grid-cols-1 gap-6 p-6 XXXsm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'>
 ";
+
+// LOOP TO BUILD MARKUP FOR DISPLAY OF PRODUCTS
 foreach ($products as $product) {
 	$image = $product->images->first();
 	$thumb = $image->size(260, 260);
@@ -160,7 +208,6 @@ foreach ($products as $product) {
 		// bd($variantsForProduct, 'variantsForProduct');
 		$productPriceStr = "from {$productPriceStr}";
 	}
-
 
 	// =======
 	// @TODO NOT SURE ABOUT CSS 'object-attrs' below!
@@ -192,6 +239,8 @@ foreach ($products as $product) {
 		// buy now
 		// @NOTE - THIS IS JUST ONE WAY OF PASSING VALUES TO ALPINE; e.g. we could have used data-attributes or ProcessWire config->js
 		"<button class='text-sm uppercase' @click.stop='handleBuyNow({$buyNowValuesJSON})'>buy now</button>" .
+		// HIDDEN INPUT FOR BUY NOW PRODUCT ID for HTMX USE
+		"<input name='htmx_alpine_tailwind_demos_get_buy_now_product_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' value='{$product->id}'>" .
 		"</div>" .
 		// end buy now wrapper
 		"</div>" .
@@ -200,34 +249,12 @@ foreach ($products as $product) {
 		"</article>";
 
 }
-// $content .= "</div>";
-$content .= "			</div>
+// END: foreach($products as $product)
+$content .= "</div>
 </section>";
-// $content .= "	</div>
-// </div>";
 
-// MODAL
 
-// @TODO NEED TO DISABLE 'ADD TO BASKET' 'INCREMENT/DECREMENT' QTY IF WE HAVE VARIANTS BUT NON SELECTED!
-// setCurrentBuyNowProductSelectedVariantID
-$variantMarkupForCurrentBuyNowProduct =
-	"<template x-if='{$store}.is_product_with_variants'>" .
-	// @NOTE: <template> can have only one root element
-	"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
-	"<span>Select an option</span>" .
-	"<div class='mb-3'>" .
-	"<template x-for='variant in {$store}.current_buy_now_product_variants_values' :key='variant.id'>" .
-	// "<li x-text='variant.title'></li>" .
-	"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant(variant)' :class='checkIsCurrentVariantID(variant.id) ?``:`btn-ghost`' x-text='variant.title'></button>" .
-	"</template>" .
-	"</div>" .
-	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
-	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
-	"<input name='htmx_alpine_tailwind_demos_get_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>" .
-	// -----
-	// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
-	"</div>" .
-	"</template>";
+// APPEND MODAL MARKUP TO $content
 
 $content .=
 	// using 'shorthand conditional [&&]'
@@ -235,57 +262,40 @@ $content .=
 	"<div class='modal modal-bottom sm:modal-middle' :class='{$store}.is_modal_open && `modal-open`' {$htmxMarkupForBuyNow}>" .
 	// MODAL CONTENT - part of it will be 'swapped' using htmx
 	"<div class='modal-box'>" .
+	// ELEMENT FOR HTMX SWAP (GET CURRENT BUY NOW PRODUCT DETAILS ACTION RESPONSE {triggered by click of 'buy now' button for a product})
 	// main modal content to swap out
 	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_wrapper'>" .
-	"<h4 class='font-bold XXXtext-lg' x-text='{$store}.current_buy_now_product_values.product_title'></h4>" .
+	// >>>>>>>>>>>>>>>>>>>>
+	// PRODUCT TITLE MARKUP
+	$titleMarkupForCurrentBuyNowProduct .
 	# +++++++++++++++++++
 	// CONDITIONAL VARIANTS MARKUP
-
 	$variantMarkupForCurrentBuyNowProduct .
 	# +++++++++++++++++++
 	// BUTTONS + INCREASE/DECREASE QUANTITY BUTTONS + PRICES
-	"<div class='form-control'>" .
-	// "<span>$<span x-text='{$store}.current_buy_now_product_total_price'></span></span>" .
-	"<span class='text-md'>" .
-	// unit price
-	"$<span class='mr-1' x-text='getProductOrSelectedVariantPrice()'></span>" .
-	// total price
-	"($<span x-text='getCurrentTotalPrice()'></span>)" .
-	"</span>" . // @note: using this so we get the updated value if manual quantity inputted
-	"<div class='input-group'>" .
-	// @note: note the :disabled bind! '-' & '+' buttons, the quantity input and 'add to basket' will be disabled if product has variants and none is yet selected
-	"<button class='btn btn-outline btn' @click='handleBuyNowQuantity(-1)' :disabled='{$store}.is_need_to_select_a_variant'>&minus;</button>" .
-	"<input name='htmx_alpine_tailwind_demos_get_buy_now_quantity' class='w-14 border border-x-0 border-black bg-transparent text-center input input-bordered htmx_alpine_tailwind_demos_buy_now' type='number' value='1' min='1' x-model.number='{$store}.current_buy_now_product_quantity'  :disabled='{$store}.is_need_to_select_a_variant'/>" .
-	"<button class='btn btn-outline' @click='handleBuyNowQuantity(1)' :disabled='{$store}.is_need_to_select_a_variant'>&plus;</button>" .
-	"<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart' :disabled='{$store}.is_need_to_select_a_variant'>Add to basket</button>" .
-	"</div>" .
-	"</div>" .
-
+	$cartActionsMarkupForCurrentBuyNowProduct .
 	// ------
-	// ELEMENT FOR HTMX SWAP
+	# <<<<<<<<<<<<<<<<<<
+	// ELEMENT FOR HTMX SWAP (ADD TO CART ACTION RESPONSE {NOTICE})
 	// @note: will show success/fail of add to basket
 	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_notice' x-ref='htmx_alpine_tailwind_demos_get_buy_now_product_notice'>" .
-	"</div>" .
+	"</div>" . // END: div#htmx_alpine_tailwind_demos_get_buy_now_product_notice
 	// ----------
-	"</div>" . // end #htmx_alpine_tailwind_demos_get_buy_now_product_wrapper
-	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT ID for HTMX USE
-	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_values.product_id' [@NOTE an object whose property 'product_id' we bind]
-	// @note: IN THIS DEMO, VARIANTS MARKUP FOR THE MODAL IS BUILD ON THE FLY @see the variable '$variantMarkupForCurrentBuyNowProduct'
-	"<input name='htmx_alpine_tailwind_demos_get_buy_now_product_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_values.product_id'>" .
+	"</div>" .
+	// end #htmx_alpine_tailwind_demos_get_buy_now_product_wrapper
+
 	// MODAL ACTION
 	"<div class='modal-action'>" .
 	// on click this 'close button', we set current buy now product to '0'
 	// THIS WILL close the modal and reset current buy now values in the Alpine.js store 'HtmxAlpineTailwindDemosStore'
+	// @TODO: DO WE STILL NEED $defaultBuNowValuesJSON???
 	"<button class='btn XXXbtn-ghost btn-secondary' @click='handleBuyNow({$defaultBuNowValuesJSON})'>close</button>" .
-	"</div>" .
+	"</div>" . // END: div.modal-action
 	// ----
-	"</div>" .
+	"</div>" . // END: div.modal-box
 	// -----
-	"</div>";
+	"</div>"; // END: div.modal
 
 // ====
-// @SEE ABOVE @UPDATE: WE NOW SET DIRECTLY IN AN x-initi
-// variants script if available
-// $content .= $variantsScript;
 ///////////////////
-// echo $content;
+// echo $content;// @NOTE NO LONGER NEEDED AS WE ACCESS $content, etc by using php require_once(this_file)
