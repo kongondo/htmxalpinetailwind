@@ -121,6 +121,9 @@ document.addEventListener("alpine:init", () => {
 		//----------------
 
 		is_modal_open: false,
+		// for the 'htmx renders modal' demo
+		// it shows 'spinner' or loading message
+		is_fetching_product_for_modal: true,
 		// current_buy_now_product_id: 0,
 		current_buy_now_product_selected_variant_id: 0,
 		current_buy_now_product_values: {},

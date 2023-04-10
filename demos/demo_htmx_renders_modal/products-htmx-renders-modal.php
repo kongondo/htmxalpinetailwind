@@ -32,7 +32,13 @@ DEMO NOTES
 /*
 /** @var Page $page */
 
-// $title = $alpineJSVariable;
+function getModalOutput() {
+	$input = wire('input');
+	// if
+	$out = "<p>MODAL OUTPUT HERE: EITHER FETCHED PRODUCT OR NOTICE OF ADD TO BASKET OR EMPTY ON LOAD<p>";
+	// -----
+	return $out;
+}
 
 // Primary content is the page's body copy
 // $content = $page->get('body');
@@ -268,23 +274,17 @@ $content .=
 	// main modal content to swap out
 	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_wrapper'>" .
 	// >>>>>>>>>>>>>>>>>>>>
-	// PRODUCT TITLE MARKUP
-	$titleMarkupForCurrentBuyNowProduct .
-	# +++++++++++++++++++
-	// CONDITIONAL VARIANTS MARKUP
-	$variantMarkupForCurrentBuyNowProduct .
-	# +++++++++++++++++++
-	// BUTTONS + INCREASE/DECREASE QUANTITY BUTTONS + PRICES
-	$cartActionsMarkupForCurrentBuyNowProduct .
-	// ------
+	// @note: initially this show 'loading' as we wait for htmx to fetch requested product to load in modal
+	getModalOutput() .
 	# <<<<<<<<<<<<<<<<<<
+
+	// ----------
+	"</div>" .
+	// end #htmx_alpine_tailwind_demos_get_buy_now_product_wrapper
 	// ELEMENT FOR HTMX SWAP (ADD TO CART ACTION RESPONSE {NOTICE})
 	// @note: will show success/fail of add to basket
 	"<div id='htmx_alpine_tailwind_demos_get_buy_now_product_notice' x-ref='htmx_alpine_tailwind_demos_get_buy_now_product_notice'>" .
 	"</div>" . // END: div#htmx_alpine_tailwind_demos_get_buy_now_product_notice
-	// ----------
-	"</div>" .
-	// end #htmx_alpine_tailwind_demos_get_buy_now_product_wrapper
 
 	// MODAL ACTION
 	"<div class='modal-action'>" .
