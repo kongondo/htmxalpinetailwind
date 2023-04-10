@@ -273,8 +273,18 @@ document.addEventListener("alpine:init", () => {
 		},
 
 		handUpdateCart() {
-			// debugLogger(`WE WILL TRIGGER HTMX TO TELL SERVER TO UPDATE CART!`)
+			debugLogger(`WE WILL TRIGGER HTMX TO TELL SERVER TO UPDATE CART!`)
 			this.processBuyNow()
+		},
+
+		handleBuyNowForGetBuyNowProduct() {
+			// @NOTE: for use by 'htmx renders modal' demo
+			// @TODO/WIP
+			// --------
+			console.log(
+				"handleBuyNowForGetBuyNowProduct - WE NEED TO OPEN MODAL, SHOW SPINNER, LISTEN TO HTMX AFTER SWAP, ETC!"
+			)
+			this.setStoreValue("is_modal_open", true)
 		},
 
 		processBuyNow() {

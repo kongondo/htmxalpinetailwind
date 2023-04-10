@@ -29,7 +29,7 @@ DEMO NOTES
 /*
 /** @var Page $page */
 
-
+$breadcrumb = buildBreadCrumb($page);
 
 $demoSession = $session->get('htmxalpinetailwindproductsselectedDemo');
 $demoRender = 'demo_alpine_renders_modal';
@@ -40,7 +40,7 @@ if ($demoSession === 'demo_htmx_renders_modal') {
 }
 // bd($demoSession, __METHOD__ . ': $demoSession at line #' . __LINE__);
 // ------
-// LOAD CONTENT FOR PRODUCTS
+// LOAD CONTENT FOR PRODUCTS @update @TODO WE NOW GET THE VARIABLES INSTEAD!
 // $content = $files->render("{$config->templates->path}prepend/{$demoRenderFileName}.php");
+// @note: this will populate $content and other variables as needed
 require_once("{$config->templates->path}prepend/{$demoRenderFileName}.php");
-bd($content, __METHOD__ . ': $content at line #' . __LINE__);

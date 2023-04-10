@@ -155,7 +155,7 @@ function processBuyNowAction($productID) {
 	// MINIMAL MARKUP FROM SERVER ONLY FOR 'success' notices
 
 	$currentDemo = getDemoFromSession();
-	// bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
+	bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
 	// @TODO @NOTE: FOR NOW, WE JUST CHECK DEMO NAMES HERE; IDEALLY, WE SHOULD BE FETCHING THE RESPONSE FROM THE DEMO RENDERER FILES THEMESELVES?
 	// demo_alpine_renders_modal OR demo_htmx_renders_modal
 
@@ -169,19 +169,12 @@ function processBuyNowAction($productID) {
 	// $isIncludedFile = wire('files')->render($demoFilePath);
 	require_once($demoFilePath);
 	// bd($isIncludedFile, __METHOD__ . ': $isIncludedFile at line #' . __LINE__);
-	bd($testing, __METHOD__ . ': $testing at line #' . __LINE__);
+	// bd($modalOutput, __METHOD__ . ': $modalOutput at line #' . __LINE__);
 
-	$out = $testing;
+	$out = $modalOutput;
 
-	# ++++++++++++++++++
-	$outMOVETOALPINERENDERFILE =
-		// add to basket success confirm
-		"<div class='alert alert-success shadow-lg mt-3'>
-		<div>
-			<svg xmlns='http://www.w3.org/2000/svg' class='stroke-current flex-shrink-0 h-6 w-6' fill='none' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' /></svg>
-			<span class='text-sm'>Product has been added to your basket successfully.</span>
-		</div>
-	</div>";
+
+
 	// ------
 	return $out;
 }
@@ -229,7 +222,7 @@ function setDemoToSession(string $selectedDemo): void {
 	// bd($selectedDemo, __METHOD__ . ': $selectedDemo at line #' . __LINE__);
 }
 
-function getDemoFromSession() {
+function getDemoFromSession(): string {
 	$currentDemo = wire('session')->get('htmxalpinetailwindproductsselectedDemo');
 	// bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
 	return $currentDemo;
@@ -339,6 +332,8 @@ function getDemosList(): array {
 
 function renderDemosSelectMarkup() {
 	$demosList = getDemosList();
+	$currentDemo = getDemoFromSession();
+	bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
 	// @note: no swapping here; this is just for switiching demos.
 // @note: some demos redirect!
 // @note: home page handles the ajax requests
@@ -348,7 +343,8 @@ function renderDemosSelectMarkup() {
 	$out .= "<option value='0' xxdisabled>Select a demo</option>";
 	// @note: $key will be the session value we set
 	foreach ($demosList as $key => $option) {
-		$out .= "<option value='{$key}'>{$option['label']}</option>";
+		$selected = $key === $currentDemo ? ' selected' : '';
+		$out .= "<option value='{$key}'{$selected}>{$option['label']}</option>";
 	}
 
 	// -----
