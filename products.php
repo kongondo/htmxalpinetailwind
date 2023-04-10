@@ -10,7 +10,7 @@ DEMO NOTES
 2. Alpine.js handles the action
 -  opens/closses a modal
 - set ID of the current buy now product
-- this ID is modeled by a hidden input #htmx_alpine_tailwind_demos_buy_now_product_id
+- this ID is modeled by a hidden input #htmx_alpine_tailwind_demos_add_to_basket_product_id
 - Alpine dispatches a custom event that htmx is listening to.
 3. htmx picks up the custom event 'HtmxAlpineTailwindDemosGetBuyNowProduct' [purposefully verbosely long for clarity!]
 - htmx sends a get request to the server

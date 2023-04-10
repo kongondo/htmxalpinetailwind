@@ -277,14 +277,63 @@ document.addEventListener("alpine:init", () => {
 			this.processBuyNow()
 		},
 
-		handleBuyNowForGetBuyNowProduct() {
+		handleFetchBuyNowProduct(product_values) {
 			// @NOTE: for use by 'htmx renders modal' demo
+			// @NOTE: QUITE SIMILAR TO handleBuyNow() with a few differences since we are loading most values from server
 			// @TODO/WIP
 			// --------
 			console.log(
-				"handleBuyNowForGetBuyNowProduct - WE NEED TO OPEN MODAL, SHOW SPINNER, LISTEN TO HTMX AFTER SWAP, ETC!"
+				"handleFetchBuyNowProduct - WE NEED TO OPEN MODAL, SHOW SPINNER, LISTEN TO HTMX AFTER SWAP, ETC! - product_values",
+				product_values
 			)
-			this.setStoreValue("is_modal_open", true)
+			// @NOTE/@TODO HERE YOU SHOULD HANDLE ERRORS, ensure expected properties are in the sent object, etc!
+			const isModalOpenProperty = "is_modal_open"
+			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
+			const incomingIsModalOpenValue = !currentIsModalOpenValue
+
+			/* @TODO - PENDING:
+			- htmx spinner when ajax request sent (?)
+			*/
+
+			// DOES CURRENT BUY NOW PRODUCT HAVE VARIANTS?
+			const idsOfProductsWithVariants = this.getStoreValue(
+				"ids_of_products_with_variants"
+			)
+
+			const currentBuyNowProductID = product_values.product_id
+			if (
+				Object.values(idsOfProductsWithVariants).includes(
+					currentBuyNowProductID
+				)
+			) {
+				// get and set this products variants
+				this.setCurrentBuyNowProductVariants(currentBuyNowProductID)
+				// product has variants! - set flag to display them
+				this.setStoreValue("is_product_with_variants", true)
+				// disable product quantity and add to basket actions/elements until a variant is selected
+				this.setStoreValue("is_need_to_select_a_variant", true)
+			}
+			// set current buy now product values to the store
+			this.setCurrentBuyNowProductValues(product_values)
+			// set current buy now product unit price to the store
+			// @note: if product has variants, this will change once a variant is selected
+			this.setStoreValue(
+				"current_buy_now_product_unit_price",
+				product_values.product_price
+			)
+
+			// --------
+			// setTimeout(() => {
+			// open or close modal for buy now
+			this.setStoreValue(isModalOpenProperty, incomingIsModalOpenValue)
+			// }, 300)
+
+			// =========
+			// if modal is closing, reset 'current by now product' values to defaults
+			// also empty htmx populated notice for 'item added to basket'
+			if (!incomingIsModalOpenValue) {
+				this.resetBuyNowValuesToDefaults()
+			}
 		},
 
 		processBuyNow() {

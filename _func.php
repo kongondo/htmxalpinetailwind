@@ -137,9 +137,9 @@ function handleAjaxRequests($input) {
 		// bd($input->get('htmx_alpine_tailwind_demos'), __METHOD__ . ': $input->get(\'htmx_alpine_tailwind_demos\') at line #' . __LINE__);
 		// @note: no swap when switching demos; so no output
 		processSwitchDemo($input->get('htmx_alpine_tailwind_demos'));
-	} elseif (!empty($input->get('htmx_alpine_tailwind_demos_get_buy_now_product_id'))) {
+	} elseif (!empty($input->get('htmx_alpine_tailwind_demos_add_to_basket_product_id'))) {
 		// HANDLE BUY NOW REQUEST (update cart)
-		$out = processBuyNowAction((int) $input->get('htmx_alpine_tailwind_demos_get_buy_now_product_id'));
+		$out = processBuyNowAction((int) $input->get('htmx_alpine_tailwind_demos_add_to_basket_product_id'));
 	}
 
 	// ------
