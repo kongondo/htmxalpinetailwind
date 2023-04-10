@@ -313,7 +313,7 @@ function getDemosList(): array {
 	$demosList = [
 		'demo_alpine_renders_modal' => [
 			'label' => 'Alpine.js Renders Modal',
-			'file' => 'alpine_renders_modals/products-alpine-renders-modal',
+			'file' => 'demo_alpine_renders_modal/products-alpine-renders-modal',
 			'description' => 'Product details in the buy now modal are rendered from client-side using Alpine.js. The data is pre-populated when the products page is rendered. This data contains details of product variants where applicable.',
 			// we need to redirect in order to have the related 'render file' to be rendered
 			'redirect' => 'products' // products page
