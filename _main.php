@@ -76,6 +76,13 @@ if ($config->ajax) {
 		[x-cloak] { display: none !important; }
 	</style>
 	<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+	<!-- INCLUDE ALPINE.JS Plugins -->
+	<!-- persist -->
+	<script src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js" defer></script>
+	<!-- INCLUDE CUSTOM JS -->
+	<!-- @note: here just because of the persist plugin - race condition for init -->
+	<script src="<?php echo $config->urls->templates ?>scripts/main.js" defer></script>
+
 	<!-- INCLUDE ALPINE.JS -->
 	<script src="https://unpkg.com/alpinejs" defer></script>
 	<!-- INCLUDE HTMX -->
@@ -84,7 +91,7 @@ if ($config->ajax) {
 	<!-- INCLUDE CUSTOM CSS -->
 	<link rel="stylesheet" type="text/css" href="<?php echo $config->urls->templates ?>styles/main.css" />
 	<!-- INCLUDE CUSTOM JS -->
-	<script src="<?php echo $config->urls->templates ?>scripts/main.js"></script>
+	<!-- <script src="<?php echo $config->urls->templates ?>scripts/main.js" defer></script> -->
 	<?php
 
 
