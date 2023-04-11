@@ -36,10 +36,10 @@ function getBuyNowProduct($productID) {
 	$fields = ['id', 'title', 'price', 'parent_id'];
 	$selector = "(template=product,id={$productID})(template=product-variant,parent.id={$productID}),sort=sort,sort=title";
 	$productAndItsVariants = $pages->findRaw($selector, $fields);
-	bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
-	bd($fields, __METHOD__ . ': $fields at line #' . __LINE__);
-	bd($selector, __METHOD__ . ': $selector at line #' . __LINE__);
-	bd($productAndItsVariants, __METHOD__ . ': $productAndItsVariants at line #' . __LINE__);
+	// bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
+	// bd($fields, __METHOD__ . ': $fields at line #' . __LINE__);
+// bd($selector, __METHOD__ . ': $selector at line #' . __LINE__);
+// bd($productAndItsVariants, __METHOD__ . ': $productAndItsVariants at line #' . __LINE__);
 	// ----
 	return $productAndItsVariants;
 }
@@ -175,9 +175,9 @@ function getModalMarkupForForFetchedProduct(int $productID): string {
 	if (!empty($variantsForProduct)) {
 		$productValues['variants'] = $variantsForProduct;
 	}
-	bd($productAndItsVariants, __METHOD__ . ': $productAndItsVariants at line #' . __LINE__);
-	bd($variantsForProduct, __METHOD__ . ': $variantsForProduct at line #' . __LINE__);
-	bd($productValues, __METHOD__ . ': $productValues at line #' . __LINE__);
+	// bd($productAndItsVariants, __METHOD__ . ': $productAndItsVariants at line #' . __LINE__);
+// bd($variantsForProduct, __METHOD__ . ': $variantsForProduct at line #' . __LINE__);
+// bd($productValues, __METHOD__ . ': $productValues at line #' . __LINE__);
 
 	$productValuesJSON = json_encode($productValues, JSON_HEX_APOS);
 
@@ -323,13 +323,11 @@ $selectorArray = [
 // for findRaw
 // $fields = ['id', 'title', ];
 $products = $pages->find($selectorArray);
-// bd($products, 'products');
 $parentProductsIDsStr = '';
 $productsIDs = $products->explode('id');
 $allProductsVariants = [];
 $idsOfProductsWithVariants = [];
 $variantsScript = '';
-// bd($products, 'products');
 if (!empty($productsIDs)) {
 	$parentProductsIDsStr = implode("|", $productsIDs);
 	// @note: don't really need the template part but just being thorough

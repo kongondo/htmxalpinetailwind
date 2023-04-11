@@ -3,9 +3,10 @@ const HtmxAlpineTailwindDemos = {
 		document.body.addEventListener("htmx:configRequest", (event) => {
 			const csrf_token = HtmxAlpineTailwindDemos.getCSRFToken()
 			event.detail.headers[csrf_token.name] = csrf_token.value
-			debugLogger(`headers: ${event.detail.headers}`)
-			console.log("headers", event.detail.headers)
-			console.log("parameters", event.detail.parameters)
+			// @TODO: WILL ADD EXAMPLES OF USAGE
+			// debugLogger(`headers: ${event.detail.headers}`)
+			// console.log("headers", event.detail.headers)
+			// console.log("parameters", event.detail.parameters)
 			// add XMLHttpRequest to header to work with $config->ajax
 			event.detail.headers["X-Requested-With"] = "XMLHttpRequest"
 		})
@@ -14,28 +15,30 @@ const HtmxAlpineTailwindDemos = {
 	listenToHTMXRequests: function () {
 		// before send
 		htmx.on("htmx:beforeSend", function (event) {
-			debugLogger(
-				`HtmxAlpineTailwindDemos - listenToHTMXRequests - beforeSend - event: ${event}`
-			)
+			// @TODO: WILL ADD EXAMPLES OF USAGE
+			// debugLogger(
+			// 	`HtmxAlpineTailwindDemos - listenToHTMXRequests - beforeSend - event: ${event}`
+			// )
 		})
 
 		// after swap
 		htmx.on("htmx:afterSwap", function (event) {
-			debugLogger(
-				`HtmxAlpineTailwindDemos - listenToHTMXRequests - afterSwap - event: ${event}`
-			)
+			// @TODO: WILL ADD EXAMPLES OF USAGE
+			// debugLogger(
+			// 	`HtmxAlpineTailwindDemos - listenToHTMXRequests - afterSwap - event: ${event}`
+			// )
 		})
 
 		// after settle
 		// @note: aftersettle is fired AFTER  afterswap
 		// @todo: maybe even use css to transition in so user doesn't 'perceive' a delay?
 		htmx.on("htmx:afterSettle", function (event) {
-			debugLogger(`HtmxAlpineTailwindDemos - listenToHTMXRequests - 		htmx.on("htmx:afterSettle", function (event) {
-				- event: ${event}`)
+			// @TODO: WILL ADD EXAMPLES OF USAGE
+			// debugLogger(`HtmxAlpineTailwindDemos - listenToHTMXRequests - 		htmx.on("htmx:afterSettle", function (event) {
+			// 	- event: ${event}`)
 		})
 	},
 	getCSRFToken: function () {
-		// @TODO ADD TO main.php
 		// find hidden input with id 'csrf-token'
 		const tokenInput = htmx.find("._post_token")
 		return tokenInput
@@ -170,15 +173,12 @@ document.addEventListener("alpine:init", () => {
 		 * @return {void}.
 		 */
 		setStoreValue(property, value) {
-			// debugLogger(`PROPERTY: ${property}`)
-			// debugLogger(`VALUE: ${value}`)
 			this.$store.HtmxAlpineTailwindDemosStore[property] = value
 		},
 
 		// -------
 
 		initFetchedProductValues(product_values) {
-			console.log("initFetchedProductValues - product_values", product_values)
 			this.handleFetchBuyNowProduct(product_values)
 		},
 
@@ -204,7 +204,6 @@ document.addEventListener("alpine:init", () => {
 				)
 			) {
 				// get and set this products variants
-				// debugLogger(`current_buy_now_product_id - ${current_buy_now_product_id}`)
 				const currentBuyNowProductVariants =
 					this.getCurrentBuyNowProductVariants(currentBuyNowProductID)
 				this.setCurrentBuyNowProductVariants(currentBuyNowProductVariants)
@@ -267,7 +266,7 @@ document.addEventListener("alpine:init", () => {
 		},
 
 		handUpdateCart() {
-			debugLogger(`WE WILL TRIGGER HTMX TO TELL SERVER TO UPDATE CART!`)
+			// TRIGGER HTMX TO TELL SERVER TO UPDATE CART!
 			this.processBuyNow()
 		},
 
@@ -276,27 +275,11 @@ document.addEventListener("alpine:init", () => {
 			// @NOTE: QUITE SIMILAR TO handleBuyNow() with a few differences since we are loading most values from server
 			// @TODO/WIP
 
-			// @TODO THIS WILL NOW BE CALLED BY initFetchedProductValues() which will be called by the server response to htmx request! SO, MODAL WILL BE OPENED BY handleModalState()
-			// --------
-			console.log(
-				"handleFetchBuyNowProduct - product values coming from product_values",
-				product_values
-			)
-			console.log(
-				"handleFetchBuyNowProduct - Object.keys(product_values)",
-				Object.keys(product_values)
-			)
 			// @NOTE/@TODO HERE YOU SHOULD HANDLE ERRORS, ensure expected properties are in the sent object, etc!
 
 			// DOES CURRENT BUY NOW PRODUCT HAVE VARIANTS?
-
 			if (Object.keys(product_values).includes("variants")) {
-				// @TODO CONFIRM WE CAN REUSE THIS FOR THE HTMX RENDERS MODALS DEMO!
 				const currentBuyNowProductVariants = product_values["variants"]
-				console.log(
-					"handleFetchBuyNowProduct - product HAS VARIANTS - currentBuyNowProductVariants",
-					currentBuyNowProductVariants
-				)
 				this.setCurrentBuyNowProductVariants(currentBuyNowProductVariants)
 				// product has variants! - set flag to display them
 				this.setStoreValue("is_product_with_variants", true)
@@ -314,24 +297,18 @@ document.addEventListener("alpine:init", () => {
 		},
 
 		handleModalState() {
-			console.log(
-				"handleModalState - WE NEED TO OPEN MODAL & SHOW SPINNER if fetching for htmx demo!"
-			)
 			const isModalOpenProperty = "is_modal_open"
 			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
 			const incomingIsModalOpenValue = !currentIsModalOpenValue
 
 			// --------
-			// setTimeout(() => {
 			// open or close modal for buy now
 			this.setStoreValue(isModalOpenProperty, incomingIsModalOpenValue)
-			// }, 300)
 
 			// =========
 			// if modal is closing, reset 'current by now product' values to defaults
 			// also empty htmx populated notice for 'item added to basket'
 			if (!incomingIsModalOpenValue) {
-				console.log("handleModalState - MODAL IS CLOSING: RESET VALUES!")
 				this.resetBuyNowValuesToDefaults()
 			}
 		},
@@ -343,7 +320,6 @@ document.addEventListener("alpine:init", () => {
 			const currentBuyNowProductID = parseInt(
 				currentBuyNowProductValues.product_id
 			)
-			// debugLogger(`BUY NOW PRODUCT ID: ${currentBuyNowProductID}`)
 			if (currentBuyNowProductID) {
 				// WE HAVE A CURRENT BUY NOW PRODUCT ID: process the modal!
 				// ----------
@@ -351,18 +327,12 @@ document.addEventListener("alpine:init", () => {
 				// this.$dispatch("HtmxAlpineTailwindDemosGetBuyNowProduct", {
 				// 	current_buy_now_product_id: currentBuyNowProductID,
 				// })
-				// debugLogger(
-				// 	`WE HAVE A BUY NOW PRODUCT ID: trigger htmx!: ${currentBuyNowProductID}`
-				// )
 				const triggerElementID =
 					"#htmx_alpine_tailwind_demos_get_buy_now_product_wrapper"
 				const triggerEvent = "HtmxAlpineTailwindDemosGetBuyNowProduct"
 				// const eventDetails = {
 				// 	current_buy_now_product_id: currentBuyNowProductID,
 				// }
-				// debugLogger(`triggerElementID for htmx!: ${triggerElementID}`)
-				// debugLogger(`triggerEvent for htmx!: ${triggerEvent}`)
-				// debugLogger(`eventDetails for htmx!: ${eventDetails}`)
 				// @NOTE: WE DELAY triggering htmx TO AVOID RACE CONDITION
 				// @NOTE: delay:300ms won't work on htmx target since it won't detect the change in the hidden input on time
 				setTimeout(() => {
@@ -376,28 +346,11 @@ document.addEventListener("alpine:init", () => {
 			// @TODO DO WE NEED TO HANDLE 'else'?
 		},
 
-		handleSomeAction() {
-			const message = "htmx, Alpine.JS and Tailwind CSS are awesome!"
-			// -----
-			this.handleAnotherAction(message)
-		},
-		handleAnotherAction(message) {
-			debugLogger(message)
-		},
-
 		setProductsVariantsData(
 			ids_of_products_with_variants,
 			all_products_variants
 		) {
 			// SET TO STORE!
-			// console.log(
-			// 	"setProductsVariantsData - ids_of_products_with_variants",
-			// 	ids_of_products_with_variants
-			// )
-			// console.log(
-			// 	"setProductsVariantsData - all_products_variants",
-			// 	all_products_variants
-			// )
 			this.setStoreValue(
 				"ids_of_products_with_variants",
 				ids_of_products_with_variants
@@ -405,10 +358,6 @@ document.addEventListener("alpine:init", () => {
 			this.setStoreValue("all_products_variants", all_products_variants)
 		},
 		setCurrentBuyNowProductVariants(currentBuyNowProductVariants) {
-			console.log(
-				"setCurrentBuyNowProductVariants - currentBuyNowProductVariants",
-				currentBuyNowProductVariants
-			)
 			this.setStoreValue(
 				"current_buy_now_product_variants_values",
 				currentBuyNowProductVariants
@@ -435,13 +384,6 @@ document.addEventListener("alpine:init", () => {
 				"current_buy_now_product_variant_values",
 				buy_now_product_variant_values
 			)
-			// debugLogger(
-			// 	`current_buy_now_variant_id: ${buy_now_product_variant_values.id}`
-			// )
-			console.log(
-				"setCurrentBuyNowProductSelectedVariant - buy_now_product_variant_values",
-				buy_now_product_variant_values
-			)
 			// -----
 			// if we don't have a variant price, we fall back to the main product price
 			let variantUnitPrice = buy_now_product_variant_values.price
@@ -452,7 +394,6 @@ document.addEventListener("alpine:init", () => {
 				// @note: property for main product is 'product_price'!
 				variantUnitPrice = currentBuyNowProduct.product_price
 			}
-			// debugLogger(`variantUnitPrice: ${variantUnitPrice}`)
 			this.setStoreValue("current_buy_now_product_unit_price", variantUnitPrice)
 			this.setStoreValue("is_need_to_select_a_variant", false)
 		},
@@ -474,18 +415,6 @@ document.addEventListener("alpine:init", () => {
 			const currentBuyNowProductVariant = this.getStoreValue(
 				"current_buy_now_product_variant_values"
 			)
-			// console.log(
-			// 	"getProductOrSelectedVariantPrice - currentBuyNowProduct",
-			// 	currentBuyNowProduct
-			// )
-			// console.log(
-			// 	"getProductOrSelectedVariantPrice - currentBuyNowProductVariant",
-			// 	currentBuyNowProductVariant
-			// )
-			// console.log(
-			// 	"getProductOrSelectedVariantPrice - Object.keys(currentBuyNowProductVariant)",
-			// 	Object.keys(currentBuyNowProductVariant)
-			// )
 			// -------
 			let productUnitPrice
 			if (
@@ -496,18 +425,10 @@ document.addEventListener("alpine:init", () => {
 				productUnitPrice = this.getStoreValue(
 					"current_buy_now_product_unit_price"
 				)
-				// console.log(
-				// 	"getProductOrSelectedVariantPrice - productUnitPrice - VARIANT PRESENT",
-				// 	productUnitPrice
-				// )
 			}
 			if (!productUnitPrice) {
 				// get price from main product (@note: 'product_price' is the prop!)
 				productUnitPrice = currentBuyNowProduct.product_price
-				// console.log(
-				// 	"getProductOrSelectedVariantPrice - productUnitPrice - VARIANT NOT PRESENT OR NO UNIT PRICE",
-				// 	productUnitPrice
-				// )
 			}
 			return productUnitPrice
 		},
@@ -515,23 +436,6 @@ document.addEventListener("alpine:init", () => {
 		getCurrentBuyNowProductVariants(current_buy_now_product_id) {
 			// allProductsVariants is an object of objects
 			const allProductsVariants = this.getStoreValue("all_products_variants")
-			// console.log(
-			// 	"getCurrentBuyNowProductVariants - allProductsVariants",
-			// 	allProductsVariants
-			// )
-			// ----
-			// console.log(
-			// 	"getCurrentBuyNowProductVariants - Object.keys(allProductsVariants)",
-			// 	Object.keys(allProductsVariants)
-			// )
-			// console.log(
-			// 	"getCurrentBuyNowProductVariants - Object.values(allProductsVariants)",
-			// 	Object.values(allProductsVariants)
-			// )
-			// console.log(
-			// 	"getCurrentBuyNowProductVariants - Object.entries(allProductsVariants)",
-			// 	Object.entries(allProductsVariants)
-			// )
 
 			// ====
 			// get the the values in the object of objects -> this is an Array
@@ -539,21 +443,11 @@ document.addEventListener("alpine:init", () => {
 			const currentBuyNowProductVariants = Object.values(
 				allProductsVariants
 			).filter((item) => item.parent_id === current_buy_now_product_id)
-			// for (variant of Object.values(allProductsVariants)) {
-			// 	// body of for...of
-			// 	console.log("getCurrentBuyNowProductVariants - variant", variant)
-			// }
-
-			// console.log(
-			// 	"getCurrentBuyNowProductVariants - currentBuyNowProductVariants",
-			// 	currentBuyNowProductVariants
-			// )
 			// ---------
 			return currentBuyNowProductVariants
 		},
 
 		resetBuyNowValuesToDefaults() {
-			console.log("resetBuyNowValuesToDefaults - RESETTING VALUES")
 			// @note: just foolproofing as not really necessary as the values will be overwritten when modal is opened again
 			// current_buy_now_product_values: {} // handled via blank values sent to handleBuyNow()
 			// @TODO?
