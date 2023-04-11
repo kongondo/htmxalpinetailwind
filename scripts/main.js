@@ -249,7 +249,7 @@ document.addEventListener("alpine:init", () => {
 
 			let updatedBuyNowProductQuantity =
 				currentBuyNowProductQuantity + parseInt(amount)
-			if (!updatedBuyNowProductQuantity) {
+			if (updatedBuyNowProductQuantity < 1 || !updatedBuyNowProductQuantity) {
 				// make sure we always have at least quantity of 1
 				// @todo: could also change for '0' to mean remove item?
 				updatedBuyNowProductQuantity = 1
@@ -488,9 +488,14 @@ document.addEventListener("alpine:init", () => {
 				const currentBuyNowProductUnitPrice = this.getStoreValue(
 					"current_buy_now_product_unit_price"
 				)
-				const currentBuyNowProductQuantity = parseInt(
+				let currentBuyNowProductQuantity = parseInt(
 					this.getStoreValue("current_buy_now_product_quantity")
 				)
+				if (currentBuyNowProductQuantity < 1 || !currentBuyNowProductQuantity) {
+					// make sure we always have at least quantity of 1
+					// @todo: could also change for '0' to mean remove item?
+					currentBuyNowProductQuantity = 1
+				}
 				currentBuyNowProductTotalPrice =
 					currentBuyNowProductQuantity * currentBuyNowProductUnitPrice
 			}
