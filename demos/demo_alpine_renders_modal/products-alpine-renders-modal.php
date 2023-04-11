@@ -43,7 +43,8 @@ DEMO NOTES
 // WE ARE MANUALLY SPECIFYING A TRIGGER for HTMX; in this case, a custom event 'HtmxAlpineTailwindDemosGetBuyNowProduct'
 $hxTrigger = 'HtmxAlpineTailwindDemosGetBuyNowProduct';
 // SENDING HTMX GET REQUEST TO THE 'root' ProcessWire page.
-$hxGet = '/';
+// $hxGet = '/';
+$hxPost = '/';
 // WE WILL REPLACE THE CONTENTS OF THIS DIV with the server response
 $hxTarget = '#htmx_alpine_tailwind_demos_get_buy_now_product_notice';
 // THIS TELLS HTMX WHERE WITHIN (or without) THE TARGET TO PLACE THE MARKUP RETURNED BY THE SERVER
@@ -53,8 +54,8 @@ $hxSwap = 'innerHTML';
 // $hxParams = "htmx_alpine_tailwind_demos_add_to_basket_product_id";
 $hxInclude = ".htmx_alpine_tailwind_demos_buy_now";
 // --------
-// we list to a custom even to trigger this htmx action
-$htmxMarkupForBuyNow = "hx-trigger='{$hxTrigger}' hx-target='{$hxTarget}' hx-get='${hxGet}' hx-swap='{$hxSwap}' hx-include='{$hxInclude}'";
+// we list to a custom event to trigger this htmx action
+$htmxMarkupForBuyNow = "hx-trigger='{$hxTrigger}' hx-target='{$hxTarget}' hx-post='${hxPost}' hx-swap='{$hxSwap}' hx-include='{$hxInclude}'";
 
 # >>>> ALPINE.js <<<<
 
