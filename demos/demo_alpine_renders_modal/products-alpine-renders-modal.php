@@ -153,15 +153,11 @@ foreach ($products as $product) {
 	$buyNowValuesJSON = json_encode($buyNowValues, JSON_HEX_APOS);
 
 	// ======
-	$variantsForProduct = [];
 	// PROCESS VARIANTS IF AVAILABLE
 	if (in_array($product->id, $idsOfProductsWithVariants)) {
 		// @TODO
-		$variantsForProduct = getVariantsForAProduct($allProductsVariants, 'parent_id', $product->id);
-		// bd($variantsForProduct, 'variantsForProduct');
 		$productPriceStr = "from {$productPriceStr}";
 	}
-
 
 	// =======
 	// @TODO NOT SURE ABOUT CSS 'object-attrs' below!
@@ -258,7 +254,7 @@ $content .=
 	"<button class='btn btn-outline btn' @click='handleBuyNowQuantity(-1)' :disabled='{$store}.is_need_to_select_a_variant'>&minus;</button>" .
 	"<input name='htmx_alpine_tailwind_demos_add_to_basket_quantity' class='w-14 border border-x-0 border-black bg-transparent text-center input input-bordered htmx_alpine_tailwind_demos_buy_now' type='number' value='1' min='1' x-model.number='{$store}.current_buy_now_product_quantity'  :disabled='{$store}.is_need_to_select_a_variant'/>" .
 	"<button class='btn btn-outline' @click='handleBuyNowQuantity(1)' :disabled='{$store}.is_need_to_select_a_variant'>&plus;</button>" .
-	"<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart' :disabled='{$store}.is_need_to_select_a_variant'>Add to basket</button>" .
+	"<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart' :disabled='{$store}.is_need_to_select_a_variant ||{$store}.current_buy_now_product_quantity<1'>Add to basket</button>" .
 	"</div>" .
 	"</div>" .
 
