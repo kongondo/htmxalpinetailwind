@@ -1,7 +1,7 @@
 <?php
 namespace ProcessWire;
 
-// DEMO: ALPINE.js RENDERS  MODAL
+// DEMO: htmx RENDERS  MODAL
 // render for products.php template file
 
 $pages = wire('pages');
@@ -10,26 +10,18 @@ $sanitizer = wire('sanitizer');
 >>>>>>>>>>>>>>>>>>>>>>>>
 DEMO NOTES
 1. Demo 'buy now' action
-2. Alpine.js handles the action
--  opens/closes a modal
-- set ID of the current buy now product
-- this ID is modeled by a hidden input #htmx_alpine_tailwind_demos_add_to_basket_product_id
-- Alpine dispatches a custom event that htmx is listening to.
-3. htmx picks up the custom event 'HtmxAlpineTailwindDemosGetBuyNowProduct' [purposefully verbosely long for clarity!]
-- htmx sends a get request to the server
-- server sends response to htmx: if product found; the markup for that, else fail markup
-- htmx populates the 'buy now modal' and listens to increment/decrement product in basket
+2. Buy Now button click triggers a htmx ajax get request
+3. htmx sends the value of the associated hidden input for the product being bought
+4. At the same time, Alpine.js opens the modal and shows a 'spinner' + wait message
+5. When ready, htmx populates the modal with server-rendered markup for the selected product
+- includes: title, variants if any, price, etc
+- @note: markup includes attributes for Alpine.js as well
+- @note: the markup also includes an 'add to basket' button rendered from the server and set to trigger htmx
 @NOTES:
 - This is just one way of doing this
-- An alternative (@TODO DEMO FOR THIS/WIP) is to populate the modal with details on the client side
-- We use Alpine.js for this
-- This would mean Alpine.js gets all products (those in view) details and stores this in the $store.HtmxAlpineTailwindDemosStore
-- When populating the modal, Alpine gets the information from the store
-- the increment/decrement product in cart/basket are handled by htmx as usual
-- This is trickier if your store has variants since it would mean fetching them all for all current products
-- Ideally you want to use findRaw() in that case
+- Ideally, we should generate as much modal markup as possible before-hand instead of refetching things like quantity buttons from the server every time!
 <<<<<<<<<<<<<<<<<<<<<<<
-/*
+*/
 /** @var Page $page */
 function getBuyNowProduct($productID) {
 	$pages = wire('pages');
@@ -52,53 +44,23 @@ function getBuyNowProductVariants(int $productID, array $productAndItsVariants):
 
 function getMarkupForProductVariants($variantsForProduct) {
 	$store = '$store.HtmxAlpineTailwindDemosStore';
-	// @TODO DELETE WHEN DONE
-	// $out =
-	// 	// @NOTE: <template> can have only one root element
-	// 	"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
-	// 	"<span>Select an option</span>" .
-	// 	"<div class='mb-3'>";
 
-	// foreach ($variantsForProduct as $variant) {
-	// 	$variantJSON = json_encode($variant);
-	// 	$out .=
-	// 		"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant({$variantJSON})' :class='checkIsCurrentVariantID({$variant['id']}) ?``:`btn-ghost`'>{$variant['title']}</button>";
-	// }
-
-	// // HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
-	// // @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
-	// $out .= "</div><input name='htmx_alpine_tailwind_demos_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>";
-
-	// // -----
-	// // end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
-	// $out .= "</div>";
-	// ----
-	// @TODO CLEANUP BELOW/DELETE OLD MARKUP
 	$out =
-		// @TODO NEED TO DISABLE 'ADD TO BASKET' 'INCREMENT/DECREMENT' QTY IF WE HAVE VARIANTS BUT NON SELECTED!
-		// setCurrentBuyNowProductSelectedVariantID
-		// $variantMarkupForCurrentBuyNowProduct
-		// "<template x-if='{$store}.is_product_with_variants'>" .
-		// @NOTE: <template> can have only one root element
 		"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
 		"<span>Select an option</span>" .
 		"<div class='mb-3'>";
 	// loop each variant, building its markup
-	// "<template x-for='variant in {$store}.current_buy_now_product_variants_values' :key='variant.id'>" .
 	foreach ($variantsForProduct as $variant) {
 		$variantJSON = json_encode($variant, JSON_HEX_APOS);
 		$out .= "<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant({$variantJSON})' :class='checkIsCurrentVariantID({$variant['id']}) ?``:`btn-ghost`'>{$variant['title']}</button>";
-		// "</template>" .
 	}
 	$out .= "</div>" .
-		// @TODO - WORK ON THIS FOR VARIANT!
 		// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
 		// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
 		"<input name='htmx_alpine_tailwind_demos_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>" .
 		// -----
 		// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
 		"</div>";
-	// "</template>";
 	return $out;
 }
 
@@ -143,20 +105,6 @@ function getModalMarkupForIsFetchingProduct(): string {
 }
 
 function getModalMarkupForForFetchedProduct(int $productID): string {
-
-	// @TODO DELETE WHEN DONE
-	// $dummyProductValues = [
-	// 	'id' => $productID,
-	// 	'price' => 123.56,
-	// 	'title' => 'Cool Product',
-	// 	'variants' => [
-	// 		1234 => ['id' => 1234, 'price' => 105.99, 'title' => 'Red'],
-	// 		1439 => ['id' => 1439, 'title' => 'Green'],
-	// 		1201 => ['id' => 1201, 'price' => 145.00, 'title' => 'Black'],
-	// 		6634 => ['id' => 6634, 'price' => 125.35, 'title' => 'Yellow'],
-	// 	]
-	// ];
-	// $dummyProductValuesJSON = json_encode($dummyProductValues);
 
 	$variantMarkupForCurrentBuyNowProduct = "";
 	$productAndItsVariants = getBuyNowProduct($productID);
@@ -217,7 +165,7 @@ function getModalMarkupForForFetchedProduct(int $productID): string {
 		# ADD TO BASKET BUTTON
 		// @UPDATE: no need for alpine.js on this one! htmx can send the needed values directly, i.e. quantity and product_id
 		// "<button class='btn btn-primary uppercase ml-1' @click='handUpdateCart' :disabled='{$store}.is_need_to_select_a_variant'>Add to basket</button>" .
-		"<button class='btn btn-primary uppercase ml-1' :disabled='{$store}.is_need_to_select_a_variant' $htmxMarkupForUpdateCart>Add to basket</button>" .
+		"<button class='btn btn-primary uppercase ml-1' :disabled='{$store}.is_need_to_select_a_variant||!{$store}.current_buy_now_product_quantity' $htmxMarkupForUpdateCart>Add to basket</button>" .
 		// @TODO ADD THIS HIDDEN INPUT AS PART OF THE MODAL RESPONSE OF FETCH BUY NOW PRODUCT; IT WILL BE FOR ADD TO BASKET (I.E., SIMILAR TO THE ALPINE JS 'BUY NOW' INPUT) => ALSO CHANGE HTMX CLASSES! THIS IS BUY NOW BUT OTHER BELOW SHOULD BE FETCH!
 		"<input name='htmx_alpine_tailwind_demos_add_to_basket_product_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' value='{$productID}'>" .
 		"</div>" .
@@ -315,19 +263,26 @@ $defaultBuNowValues = [
 ];
 $defaultBuNowValuesJSON = json_encode($defaultBuNowValues);
 
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~ OUTPUTS ~~~~~~~~~~~~~~~
+# ********** MODAL **********
+
+
+# **********
+// CONTENT for $content for _main.php
+
 $selectorArray = [
 	'template' => 'product',
 	'status<' => Page::statusTrash
 ];
 
-// for findRaw
-// $fields = ['id', 'title', ];
 $products = $pages->find($selectorArray);
 $parentProductsIDsStr = '';
 $productsIDs = $products->explode('id');
 $allProductsVariants = [];
 $idsOfProductsWithVariants = [];
-$variantsScript = '';
+
+// bd($products, 'products');
 if (!empty($productsIDs)) {
 	$parentProductsIDsStr = implode("|", $productsIDs);
 	// @note: don't really need the template part but just being thorough
@@ -337,37 +292,11 @@ if (!empty($productsIDs)) {
 	$allProductsVariants = $pages->findRaw($variantsSelector, $variantsFields);
 	$idsOfProductsWithVariants = array_unique(array_column($allProductsVariants, 'parent_id'));
 }
-// bd($allProductsVariants, 'allProductsVariants');
-// bd($idsOfProductsWithVariants, 'idsOfProductsWithVariants');
-
-// SCRIPT TO SEND VARIANTS DATA TO BROWSER
-// for alpine for use in modal for 'BUY NOW'
-// @NOTE: this is just one strategy to send data to the browser!
-// @TODO MAYBE JUST PASS TO ALPINE DIRECTLY VIA X-INIT? THEN SET TO STORE? COULD DO SO HERE OR IN THE LOOP FOR EACH ITEM BUT FORMER IS CLEANER/BETTER? @UPDATE: YES! @SEE BELOW; WE SET DIRECTLY TO x-init
-// if (!empty($allProductsVariants)) {
-// $allProductsVariantsJSON = json_encode($allProductsVariants);
-// $idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
-// $variantsScript =
-// 	"<script>" .
-// 	"const allProductsVariants = {$allProductsVariantsJSON}\n" .
-// 	"const idsOfProductsWithVariants = {$idsOfProductsWithVariantsJSON}\n" .
-// 	"</script>";
-// }
-// 'OBJECTS' for alpine x-init to set product variants values later
-$allProductsVariantsJSON = json_encode($allProductsVariants);
-$idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~ OUTPUTS ~~~~~~~~~~~~~~~
-# ********** MODAL **********
-
-
-# **********
-// CONTENT for $content for _main.php
 
 // @TODO YOU NEED TO ADD YOUR OWN CHECKS HERE IF IMAGES EXIST!
 
 $content = "
-<section class='not-prose' x-init='setProductsVariantsData({$idsOfProductsWithVariantsJSON},{$allProductsVariantsJSON})'>
+<section class='not-prose'>
 <div class='mx-auto grid grid-cols-1 gap-6 p-6 XXXsm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5'>
 ";
 
@@ -379,20 +308,9 @@ foreach ($products as $product) {
 
 	$productPriceStr = getFormattedPrice($product->price);
 
-	$buyNowValues = [
-		'product_id' => $product->id,
-		'product_price' => $product->price,
-		'product_title' => $product->title,
-	];
-	$buyNowValuesJSON = json_encode($buyNowValues);
-
-	// ======
-	$variantsForProduct = [];
-	// PROCESS VARIANTS IF AVAILABLE
+	// if product has VARIANTS, amend price string to 'from...'
 	if (in_array($product->id, $idsOfProductsWithVariants)) {
 		// @TODO
-		$variantsForProduct = getVariantsForAProduct($allProductsVariants, 'parent_id', $product->id);
-		// bd($variantsForProduct, 'variantsForProduct');
 		$productPriceStr = "from {$productPriceStr}";
 	}
 
@@ -423,17 +341,6 @@ foreach ($products as $product) {
 			<path stroke-linecap='round' stroke-linejoin='round'
 			d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z' />
 			</svg>" .
-		// buy now
-		// @NOTE - hx-include: our request to htmx says to only include the element matched by the selector (#htmx_alpine_tailwind_demos_fetch_buy_now_product_id_{$product->id})
-		// this will ensure other products IDs (hidden inputs) are also not sent with request although they have identical names
-		# @TODO DELETE THIS AS WE WILL BE GETTING PRODUCT DETAILS AND ITS VARIANTS FROM SERVER RESPONSE TO HTMX REQUEST!
-		// "<button
-		// class='text-sm uppercase'
-		// @click.stop='handleFetchBuyNowProduct({$buyNowValuesJSON})' {$htmxMarkupForFetchBuyNowProduct}
-		// hx-include='#htmx_alpine_tailwind_demos_fetch_buy_now_product_id_{$product->id}'
-		// >
-		// 	buy now
-		// </button>" .
 		"<button
 		class='text-sm uppercase'
 		@click.stop='handleModalState()' {$htmxMarkupForFetchBuyNowProduct}
