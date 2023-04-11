@@ -218,12 +218,30 @@ function setDemoToSession(string $selectedDemo): void {
 function getDemoFromSession(): string {
 	$currentDemo = wire('session')->get('htmxalpinetailwindproductsselectedDemo');
 	// bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
+	if (empty($currentDemo)) {
+		$defaultDemo = getDefaultDemo();
+		setDemoToSession($defaultDemo);
+		$currentDemo = $defaultDemo;
+	}
 	return $currentDemo;
+}
+
+function getDefaultDemo(): string {
+	// if no demo set to a new session
+// we get and set the first demo as the current demo
+// here we return that default demo
+// -------
+	$demosList = getDemosList();
+	// get the first demo
+	reset($demosList);
+	// we only need its key
+	$defaultDemo = array_key_first($demosList);
+	return $defaultDemo;
 }
 
 function getDemoByKey($demoKey) {
 	$demosList = getDemosList();
-	$demoOptions = null;
+	$demoOptions = [];
 	if (!empty($demosList[$demoKey])) {
 		$demoOptions = $demosList[$demoKey];
 	}
