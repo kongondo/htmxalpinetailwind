@@ -119,7 +119,10 @@ document.addEventListener("alpine:init", () => {
 				"winter",
 			],
 		},
-		current_theme: "cyberpunk",
+		// current_theme: "cyberpunk",
+		// current_theme: Alpine.$persist("cyberpunk").as('current_theme'),
+		// persist the selected theme
+		current_theme: Alpine.$persist("cyberpunk"),
 		// PROPERTIES
 		//----------------
 
