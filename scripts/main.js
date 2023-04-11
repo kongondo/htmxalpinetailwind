@@ -438,10 +438,10 @@ document.addEventListener("alpine:init", () => {
 			// debugLogger(
 			// 	`current_buy_now_variant_id: ${buy_now_product_variant_values.id}`
 			// )
-			// console.log(
-			// 	"setCurrentBuyNowProductSelectedVariant - buy_now_product_variant_values",
-			// 	buy_now_product_variant_values
-			// )
+			console.log(
+				"setCurrentBuyNowProductSelectedVariant - buy_now_product_variant_values",
+				buy_now_product_variant_values
+			)
 			// -----
 			// if we don't have a variant price, we fall back to the main product price
 			let variantUnitPrice = buy_now_product_variant_values.price

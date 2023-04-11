@@ -52,26 +52,53 @@ function getBuyNowProductVariants(int $productID, array $productAndItsVariants):
 
 function getMarkupForProductVariants($variantsForProduct) {
 	$store = '$store.HtmxAlpineTailwindDemosStore';
+	// @TODO DELETE WHEN DONE
+	// $out =
+	// 	// @NOTE: <template> can have only one root element
+	// 	"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
+	// 	"<span>Select an option</span>" .
+	// 	"<div class='mb-3'>";
+
+	// foreach ($variantsForProduct as $variant) {
+	// 	$variantJSON = json_encode($variant);
+	// 	$out .=
+	// 		"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant({$variantJSON})' :class='checkIsCurrentVariantID({$variant['id']}) ?``:`btn-ghost`'>{$variant['title']}</button>";
+	// }
+
+	// // HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
+	// // @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
+	// $out .= "</div><input name='htmx_alpine_tailwind_demos_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>";
+
+	// // -----
+	// // end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
+	// $out .= "</div>";
+	// ----
+	// @TODO CLEANUP BELOW/DELETE OLD MARKUP
 	$out =
+		// @TODO NEED TO DISABLE 'ADD TO BASKET' 'INCREMENT/DECREMENT' QTY IF WE HAVE VARIANTS BUT NON SELECTED!
+		// setCurrentBuyNowProductSelectedVariantID
+		// $variantMarkupForCurrentBuyNowProduct
+		// "<template x-if='{$store}.is_product_with_variants'>" .
 		// @NOTE: <template> can have only one root element
 		"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
 		"<span>Select an option</span>" .
 		"<div class='mb-3'>";
-
+	// loop each variant, building its markup
+	// "<template x-for='variant in {$store}.current_buy_now_product_variants_values' :key='variant.id'>" .
 	foreach ($variantsForProduct as $variant) {
-		$variantJSON = json_encode($variant);
-		$out .=
-			"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant({$variantJSON})' :class='checkIsCurrentVariantID({$variant['id']}) ?``:`btn-ghost`'>{$variant['title']}</button>";
+		$variantJSON = json_encode($variant, JSON_HEX_APOS);
+		$out .= "<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant({$variantJSON})' :class='checkIsCurrentVariantID({$variant['id']}) ?``:`btn-ghost`'>{$variant['title']}</button>";
+		// "</template>" .
 	}
-
-	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
-	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
-	$out .= "</div><input name='htmx_alpine_tailwind_demos_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>";
-
-	// -----
-	// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
-	$out .= "</div>";
-	// -
+	$out .= "</div>" .
+		// @TODO - WORK ON THIS FOR VARIANT!
+		// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
+		// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
+		"<input name='htmx_alpine_tailwind_demos_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>" .
+		// -----
+		// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
+		"</div>";
+	// "</template>";
 	return $out;
 }
 
@@ -152,7 +179,7 @@ function getModalMarkupForForFetchedProduct(int $productID): string {
 	bd($variantsForProduct, __METHOD__ . ': $variantsForProduct at line #' . __LINE__);
 	bd($productValues, __METHOD__ . ': $productValues at line #' . __LINE__);
 
-	$productValuesJSON = json_encode($productValues);
+	$productValuesJSON = json_encode($productValues, JSON_HEX_APOS);
 
 
 	///////////////
@@ -167,27 +194,10 @@ function getModalMarkupForForFetchedProduct(int $productID): string {
 		// $titleMarkupForCurrentBuyNowProduct
 		"<h4 class='font-bold XXXtext-lg'>{$product['title']}</h4>" .
 
-		// @TODO NEED TO DISABLE 'ADD TO BASKET' 'INCREMENT/DECREMENT' QTY IF WE HAVE VARIANTS BUT NON SELECTED!
-		// setCurrentBuyNowProductSelectedVariantID
-		// $variantMarkupForCurrentBuyNowProduct
-		"<template x-if='{$store}.is_product_with_variants'>" .
-		// @NOTE: <template> can have only one root element
-		"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
-		"<span>Select an option</span>" .
-		"<div class='mb-3'>" .
-		"<template x-for='variant in {$store}.current_buy_now_product_variants_values' :key='variant.id'>" .
-		// "<li x-text='variant.title'></li>" .
-		"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant(variant)' :class='checkIsCurrentVariantID(variant.id) ?``:`btn-ghost`' x-text='variant.title'></button>" .
-		"</template>" .
-		"</div>" .
-		// @TODO - WORK ON THIS FOR VARIANT!
-		// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
-		// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
-		"<input name='htmx_alpine_tailwind_demos_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>" .
-		// -----
-		// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
-		"</div>" .
-		"</template>" .
+		# ======================
+		// VARIANTS MARKUP IF AVAILABLE
+		$variantMarkupForCurrentBuyNowProduct .
+		# =====================
 
 		# CART ACTIONS: -/+ BUTTONS, QUANTITY INPUT + ADD TO BASKET BUTTON
 		// $cartActionsMarkupForCurrentBuyNowProduct
