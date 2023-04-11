@@ -177,13 +177,16 @@ document.addEventListener("alpine:init", () => {
 
 		// -------
 
+		initFetchedProductValues(product_values) {
+			console.log("initFetchedProductValues - product_values", product_values)
+			this.handleFetchBuyNowProduct(product_values)
+		},
+
 		handleBuyNow(product_values) {
 			// ---------
 
 			// @NOTE/@TODO HERE YOU SHOULD HANDLE ERRORS, ensure expected properties are in the sent object, etc!
-			const isModalOpenProperty = "is_modal_open"
-			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
-			const incomingIsModalOpenValue = !currentIsModalOpenValue
+			this.handleModalState()
 
 			/* @TODO - PENDING:
 			- htmx spinner when ajax request sent (?)
@@ -201,7 +204,10 @@ document.addEventListener("alpine:init", () => {
 				)
 			) {
 				// get and set this products variants
-				this.setCurrentBuyNowProductVariants(currentBuyNowProductID)
+				// debugLogger(`current_buy_now_product_id - ${current_buy_now_product_id}`)
+				const currentBuyNowProductVariants =
+					this.getCurrentBuyNowProductVariants(currentBuyNowProductID)
+				this.setCurrentBuyNowProductVariants(currentBuyNowProductVariants)
 				// product has variants! - set flag to display them
 				this.setStoreValue("is_product_with_variants", true)
 				// disable product quantity and add to basket actions/elements until a variant is selected
@@ -215,19 +221,6 @@ document.addEventListener("alpine:init", () => {
 				"current_buy_now_product_unit_price",
 				product_values.product_price
 			)
-
-			// --------
-			// setTimeout(() => {
-			// open or close modal for buy now
-			this.setStoreValue(isModalOpenProperty, incomingIsModalOpenValue)
-			// }, 300)
-
-			// =========
-			// if modal is closing, reset 'current by now product' values to defaults
-			// also empty htmx populated notice for 'item added to basket'
-			if (!incomingIsModalOpenValue) {
-				this.resetBuyNowValuesToDefaults()
-			}
 		},
 
 		handleBuyNowQuantity(amount) {
@@ -282,33 +275,29 @@ document.addEventListener("alpine:init", () => {
 			// @NOTE: for use by 'htmx renders modal' demo
 			// @NOTE: QUITE SIMILAR TO handleBuyNow() with a few differences since we are loading most values from server
 			// @TODO/WIP
+
+			// @TODO THIS WILL NOW BE CALLED BY initFetchedProductValues() which will be called by the server response to htmx request! SO, MODAL WILL BE OPENED BY handleModalState()
 			// --------
 			console.log(
-				"handleFetchBuyNowProduct - WE NEED TO OPEN MODAL, SHOW SPINNER, LISTEN TO HTMX AFTER SWAP, ETC! - product_values",
+				"handleFetchBuyNowProduct - product values coming from product_values",
 				product_values
 			)
+			console.log(
+				"handleFetchBuyNowProduct - Object.keys(product_values)",
+				Object.keys(product_values)
+			)
 			// @NOTE/@TODO HERE YOU SHOULD HANDLE ERRORS, ensure expected properties are in the sent object, etc!
-			const isModalOpenProperty = "is_modal_open"
-			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
-			const incomingIsModalOpenValue = !currentIsModalOpenValue
-
-			/* @TODO - PENDING:
-			- htmx spinner when ajax request sent (?)
-			*/
 
 			// DOES CURRENT BUY NOW PRODUCT HAVE VARIANTS?
-			const idsOfProductsWithVariants = this.getStoreValue(
-				"ids_of_products_with_variants"
-			)
 
-			const currentBuyNowProductID = product_values.product_id
-			if (
-				Object.values(idsOfProductsWithVariants).includes(
-					currentBuyNowProductID
+			if (Object.keys(product_values).includes("variants")) {
+				// @TODO CONFIRM WE CAN REUSE THIS FOR THE HTMX RENDERS MODALS DEMO!
+				const currentBuyNowProductVariants = product_values["variants"]
+				console.log(
+					"handleFetchBuyNowProduct - product HAS VARIANTS - currentBuyNowProductVariants",
+					currentBuyNowProductVariants
 				)
-			) {
-				// get and set this products variants
-				this.setCurrentBuyNowProductVariants(currentBuyNowProductID)
+				this.setCurrentBuyNowProductVariants(currentBuyNowProductVariants)
 				// product has variants! - set flag to display them
 				this.setStoreValue("is_product_with_variants", true)
 				// disable product quantity and add to basket actions/elements until a variant is selected
@@ -322,6 +311,15 @@ document.addEventListener("alpine:init", () => {
 				"current_buy_now_product_unit_price",
 				product_values.product_price
 			)
+		},
+
+		handleModalState() {
+			console.log(
+				"handleModalState - WE NEED TO OPEN MODAL & SHOW SPINNER if fetching for htmx demo!"
+			)
+			const isModalOpenProperty = "is_modal_open"
+			const currentIsModalOpenValue = this.getStoreValue(isModalOpenProperty)
+			const incomingIsModalOpenValue = !currentIsModalOpenValue
 
 			// --------
 			// setTimeout(() => {
@@ -333,6 +331,7 @@ document.addEventListener("alpine:init", () => {
 			// if modal is closing, reset 'current by now product' values to defaults
 			// also empty htmx populated notice for 'item added to basket'
 			if (!incomingIsModalOpenValue) {
+				console.log("handleModalState - MODAL IS CLOSING: RESET VALUES!")
 				this.resetBuyNowValuesToDefaults()
 			}
 		},
@@ -405,15 +404,11 @@ document.addEventListener("alpine:init", () => {
 			)
 			this.setStoreValue("all_products_variants", all_products_variants)
 		},
-		setCurrentBuyNowProductVariants(current_buy_now_product_id) {
-			// debugLogger(`current_buy_now_product_id - ${current_buy_now_product_id}`)
-			const currentBuyNowProductVariants = this.getCurrentBuyNowProductVariants(
-				current_buy_now_product_id
+		setCurrentBuyNowProductVariants(currentBuyNowProductVariants) {
+			console.log(
+				"setCurrentBuyNowProductVariants - currentBuyNowProductVariants",
+				currentBuyNowProductVariants
 			)
-			// console.log(
-			// 	"setCurrentBuyNowProductVariants - currentBuyNowProductVariants",
-			// 	currentBuyNowProductVariants
-			// )
 			this.setStoreValue(
 				"current_buy_now_product_variants_values",
 				currentBuyNowProductVariants

@@ -31,6 +31,50 @@ DEMO NOTES
 <<<<<<<<<<<<<<<<<<<<<<<
 /*
 /** @var Page $page */
+function getBuyNowProduct($productID) {
+	$pages = wire('pages');
+	$fields = ['id', 'title', 'price', 'parent_id'];
+	$selector = "(template=product,id={$productID})(template=product-variant,parent.id={$productID}),sort=sort,sort=title";
+	$productAndItsVariants = $pages->findRaw($selector, $fields);
+	bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
+	bd($fields, __METHOD__ . ': $fields at line #' . __LINE__);
+	bd($selector, __METHOD__ . ': $selector at line #' . __LINE__);
+	bd($productAndItsVariants, __METHOD__ . ': $productAndItsVariants at line #' . __LINE__);
+	// ----
+	return $productAndItsVariants;
+}
+
+function getBuyNowProductVariants(int $productID, array $productAndItsVariants): array {
+	$variantsForProduct = array_filter($productAndItsVariants, fn($item) => $item['id'] !== $productID);
+	// ------
+	return $variantsForProduct;
+}
+
+function getMarkupForProductVariants($variantsForProduct) {
+	$store = '$store.HtmxAlpineTailwindDemosStore';
+	$out =
+		// @NOTE: <template> can have only one root element
+		"<div id='htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper'>" .
+		"<span>Select an option</span>" .
+		"<div class='mb-3'>";
+
+	foreach ($variantsForProduct as $variant) {
+		$variantJSON = json_encode($variant);
+		$out .=
+			"<button class='btn btn-sm' @click='setCurrentBuyNowProductSelectedVariant({$variantJSON})' :class='checkIsCurrentVariantID({$variant['id']}) ?``:`btn-ghost`'>{$variant['title']}</button>";
+	}
+
+	// HIDDEN INPUT FOR CURRENT BUY NOW PRODUCT SELECTED VARIANT ID for HTMX USE
+	// @note: we bind its value to Alpine.js store value 'current_buy_now_product_selected_variant_id'
+	$out .= "</div><input name='htmx_alpine_tailwind_demos_buy_now_product_variant_id' class='htmx_alpine_tailwind_demos_buy_now' type='hidden' x-model='{$store}.current_buy_now_product_selected_variant_id'>";
+
+	// -----
+	// end div#htmx_alpine_tailwind_demos_buy_now_product_variants_wrapper
+	$out .= "</div>";
+	// -
+	return $out;
+}
+
 
 function handleAddItemToBasket() {
 	// 2. MOCK RESPONSE FOR MODAL BUY NOW
@@ -73,15 +117,55 @@ function getModalMarkupForIsFetchingProduct(): string {
 
 function getModalMarkupForForFetchedProduct(int $productID): string {
 
+	// @TODO DELETE WHEN DONE
+	// $dummyProductValues = [
+	// 	'id' => $productID,
+	// 	'price' => 123.56,
+	// 	'title' => 'Cool Product',
+	// 	'variants' => [
+	// 		1234 => ['id' => 1234, 'price' => 105.99, 'title' => 'Red'],
+	// 		1439 => ['id' => 1439, 'title' => 'Green'],
+	// 		1201 => ['id' => 1201, 'price' => 145.00, 'title' => 'Black'],
+	// 		6634 => ['id' => 6634, 'price' => 125.35, 'title' => 'Yellow'],
+	// 	]
+	// ];
+	// $dummyProductValuesJSON = json_encode($dummyProductValues);
+
+	$variantMarkupForCurrentBuyNowProduct = "";
+	$productAndItsVariants = getBuyNowProduct($productID);
+	$product = $productAndItsVariants[$productID];
+	$variantsForProduct = getBuyNowProductVariants($productID, $productAndItsVariants);
+	// PROCESS VARIANTS IF AVAILABLE
+	if (!empty($variantsForProduct)) {
+		// we have variants
+		$variantMarkupForCurrentBuyNowProduct = getMarkupForProductVariants($variantsForProduct);
+	}
+	$productValues = [
+		'product_id' => $productID,
+		'product_price' => $product['price'],
+		'title' => $product['title'],
+	];
+	if (!empty($variantsForProduct)) {
+		$productValues['variants'] = $variantsForProduct;
+	}
+	bd($productAndItsVariants, __METHOD__ . ': $productAndItsVariants at line #' . __LINE__);
+	bd($variantsForProduct, __METHOD__ . ': $variantsForProduct at line #' . __LINE__);
+	bd($productValues, __METHOD__ . ': $productValues at line #' . __LINE__);
+
+	$productValuesJSON = json_encode($productValues);
+
+
+	///////////////
+
 	// HTMX attributes markup for when item 'add to basket' action is triggered
 	$htmxMarkupForUpdateCart = getMarkupForHtmxUpdateBasket();
 	# --------------
 	$store = '$store.HtmxAlpineTailwindDemosStore';
 	$out =
-		"<div id='htmx_alpine_tailwind_demos_fetch_buy_now_product_wrapper' x-ref='htmx_alpine_tailwind_demos_fetch_buy_now_product_wrapper'>" .
+		"<div id='htmx_alpine_tailwind_demos_fetch_buy_now_product_wrapper' x-ref='htmx_alpine_tailwind_demos_fetch_buy_now_product_wrapper' x-init='initFetchedProductValues({$productValuesJSON})'>" .
 		// 1. RESPONSE FOR MODAL BUY NOW (product title, variants if any, increase/decrease quantity, add to basket button, etc.)
 		// $titleMarkupForCurrentBuyNowProduct
-		"<h4 class='font-bold XXXtext-lg'>TITLE: HTMX LOAD FROM SERVER</h4>" .
+		"<h4 class='font-bold XXXtext-lg'>{$product['title']}</h4>" .
 
 		// @TODO NEED TO DISABLE 'ADD TO BASKET' 'INCREMENT/DECREMENT' QTY IF WE HAVE VARIANTS BUT NON SELECTED!
 		// setCurrentBuyNowProductSelectedVariantID
@@ -334,9 +418,17 @@ foreach ($products as $product) {
 		// buy now
 		// @NOTE - hx-include: our request to htmx says to only include the element matched by the selector (#htmx_alpine_tailwind_demos_fetch_buy_now_product_id_{$product->id})
 		// this will ensure other products IDs (hidden inputs) are also not sent with request although they have identical names
+		# @TODO DELETE THIS AS WE WILL BE GETTING PRODUCT DETAILS AND ITS VARIANTS FROM SERVER RESPONSE TO HTMX REQUEST!
+		// "<button
+		// class='text-sm uppercase'
+		// @click.stop='handleFetchBuyNowProduct({$buyNowValuesJSON})' {$htmxMarkupForFetchBuyNowProduct}
+		// hx-include='#htmx_alpine_tailwind_demos_fetch_buy_now_product_id_{$product->id}'
+		// >
+		// 	buy now
+		// </button>" .
 		"<button
 		class='text-sm uppercase'
-		@click.stop='handleFetchBuyNowProduct({$buyNowValuesJSON})' {$htmxMarkupForFetchBuyNowProduct}
+		@click.stop='handleModalState()' {$htmxMarkupForFetchBuyNowProduct}
 		hx-include='#htmx_alpine_tailwind_demos_fetch_buy_now_product_id_{$product->id}'
 		>
 			buy now
