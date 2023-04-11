@@ -137,17 +137,20 @@ function handleAjaxRequests($input) {
 		// bd($input->get('htmx_alpine_tailwind_demos'), __METHOD__ . ': $input->get(\'htmx_alpine_tailwind_demos\') at line #' . __LINE__);
 		// @note: no swap when switching demos; so no output
 		processSwitchDemo($input->get('htmx_alpine_tailwind_demos'));
-	} elseif (!empty($input->get('htmx_alpine_tailwind_demos_add_to_basket_product_id'))) {
+	} elseif (!empty($input->post('htmx_alpine_tailwind_demos_add_to_basket_product_id'))) {
 		// HANDLE BUY NOW REQUEST (update cart)
 		$out = processBuyNowAction((int) $input->get('htmx_alpine_tailwind_demos_add_to_basket_product_id'));
+	} elseif (!empty($input->get('htmx_alpine_tailwind_demos_fetch_buy_now_product_id'))) {
+		// HANDLE FETCH PRODUCT DETAILS FOR BUY NOW REQUEST (update cart)
+		// @note: for 'htmx renders modal' demo
+		$out = processBuyNowAction((int) $input->get('htmx_alpine_tailwind_demos_fetch_buy_now_product_id'));
 	}
 
 	// ------
 	return $out;
 }
 
-function processBuyNowAction($productID) {
-	// bd($productID, __METHOD__ . ': $productID at line #' . __LINE__);
+function processBuyNowAction($productID): string {
 	$productID = (int) $productID;
 
 	// @NOTE: JUST FOR THE DEMOS, WE CHECK THE SESSION FOR THE CURRENTLY SELECTED DEMO
@@ -160,7 +163,7 @@ function processBuyNowAction($productID) {
 	require_once($demoFilePath);
 	// bd($isIncludedFile, __METHOD__ . ': $isIncludedFile at line #' . __LINE__);
 	// bd($modalOutput, __METHOD__ . ': $modalOutput at line #' . __LINE__);
-
+// @note: $modalOutput is coming from the requiered file
 	$out = $modalOutput;
 
 
@@ -230,7 +233,7 @@ function getDemoByKey($demoKey) {
 
 function getDemoFilePath(array $demoOptions): string {
 	$demoFilename = $demoOptions['file'];
-	$demoFilePath = wire('config')->templates->path . "demos/{$demoFilename}.php";
+	$demoFilePath = wire('config')->paths->templates . "demos/{$demoFilename}.php";
 	// -----
 	return $demoFilePath;
 }
@@ -342,7 +345,7 @@ function getDemosList(): array {
 function renderDemosSelectMarkup() {
 	$demosList = getDemosList();
 	$currentDemo = getDemoFromSession();
-	bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
+	// bd($currentDemo, __METHOD__ . ': $currentDemo at line #' . __LINE__);
 	// @note: no swapping here; this is just for switiching demos.
 // @note: some demos redirect!
 // @note: home page handles the ajax requests

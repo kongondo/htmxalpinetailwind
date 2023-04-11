@@ -122,8 +122,6 @@ document.addEventListener("alpine:init", () => {
 
 		is_modal_open: false,
 		// for the 'htmx renders modal' demo
-		// it shows 'spinner' or loading message
-		is_fetching_product_for_modal: true,
 		// current_buy_now_product_id: 0,
 		current_buy_now_product_selected_variant_id: 0,
 		current_buy_now_product_values: {},
@@ -560,6 +558,7 @@ document.addEventListener("alpine:init", () => {
 		},
 
 		resetBuyNowValuesToDefaults() {
+			console.log("resetBuyNowValuesToDefaults - RESETTING VALUES")
 			// @note: just foolproofing as not really necessary as the values will be overwritten when modal is opened again
 			// current_buy_now_product_values: {} // handled via blank values sent to handleBuyNow()
 			// @TODO?
@@ -571,6 +570,11 @@ document.addEventListener("alpine:init", () => {
 			// -
 			// empty htmx populated notice for item added to basket
 			this.$refs.htmx_alpine_tailwind_demos_get_buy_now_product_notice.replaceChildren()
+			// FOR 'htmx renders modal' demo only
+			// empty htmx populated buy now products details for item to add to basket
+			if (this.$refs.htmx_alpine_tailwind_demos_fetch_buy_now_product_wrapper) {
+				this.$refs.htmx_alpine_tailwind_demos_fetch_buy_now_product_wrapper.replaceChildren()
+			}
 		},
 
 		setCurrentBuyNowProductTotalPrice(total_price) {
