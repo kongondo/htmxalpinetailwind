@@ -110,7 +110,7 @@ if (!empty($productsIDs)) {
 // 	"</script>";
 // }
 // 'OBJECTS' for alpine x-init to set product variants values later
-$allProductsVariantsJSON = json_encode($allProductsVariants);
+$allProductsVariantsJSON = json_encode($allProductsVariants, JSON_HEX_APOS);
 $idsOfProductsWithVariantsJSON = json_encode($idsOfProductsWithVariants);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~ OUTPUTS ~~~~~~~~~~~~~~~
@@ -150,7 +150,7 @@ foreach ($products as $product) {
 		'product_price' => $product->price,
 		'product_title' => $product->title,
 	];
-	$buyNowValuesJSON = json_encode($buyNowValues);
+	$buyNowValuesJSON = json_encode($buyNowValues, JSON_HEX_APOS);
 
 	// ======
 	$variantsForProduct = [];
